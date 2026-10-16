@@ -3,161 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vortex Ads - Qazan</title>
+    <title>Telegram Earn App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Monetag SDK -->
+    <script src='//libtl.com/sdk.js' data-zone='12046628' data-sdk='show_12046628'></script>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
-        body { background-color: #121212; color: #ffffff; padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 450px; width: 100%; background: #1e1e1e; padding: 20px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        h2, h3 { text-align: center; margin-bottom: 15px; color: #00e676; }
+        :root {
+            --bg-color: #050505;
+            --panel-bg: #121212;
+            --neon-green: #00ff88;
+            --neon-blue: #00d9ff;
+            --text-color: #ffffff;
+            --border-color: rgba(0, 255, 136, 0.3);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 70px; }
+        .container { max-width: 480px; margin: 0 auto; padding: 15px; }
         
-        .card { background: #2a2a2a; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center; }
-        .balance-val { font-size: 24px; font-weight: bold; color: #ffeb3b; }
-        
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; transition: 0.2s; }
-        .btn-main { background: #00e676; color: #000; }
-        .btn-main:hover { background: #00c853; }
-        .btn-task { background: #2979ff; color: #fff; text-decoration: none; display: inline-block; text-align: center; }
-        .btn-task:hover { background: #2962ff; }
-        
-        .payment-methods { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
-        .payment-methods img { width: 60px; height: 40px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 2px solid transparent; }
-        .payment-methods img.selected { border-color: #00e676; }
-        
-        input, select { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: 1px solid #444; background: #333; color: #fff; }
-        .banned-msg { color: #ff5252; text-align: center; font-size: 18px; padding: 20px; display: none; }
+        /* Header & Balans */
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 0 15px rgba(0,255,136,0.1); margin-bottom: 15px; }
+        .balance-box div { font-size: 14px; margin-bottom: 3px; }
+        .balance-box span { font-weight: bold; color: var(--neon-green); }
+
+        /* Navigation Sections */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* Cards & Buttons */
+        .card { background: var(--panel-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 15px; }
+        .btn { width: 100%; background: #ffffff; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn:hover { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+        .btn:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; }
+
+        /* Bottom Nav */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel-bg); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color); z-index: 100; max-width: 480px; margin: 0 auto; }
+        .nav-item { background: none; border: none; color: #aaa; font-size: 11px; cursor: pointer; text-align: center; }
+        .nav-item.active { color: var(--neon-green); }
+        .nav-item svg { width: 22px; height: 22px; display: block; margin: 0 auto 3px; fill: currentColor; }
+
+        /* Çarx (Roulette) */
+        .wheel-container { text-align: center; position: relative; margin: 20px 0; }
+        .wheel { width: 250px; height: 250px; border-radius: 50%; border: 5px solid var(--neon-green); margin: 0 auto; position: relative; transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1); box-shadow: 0 0 20px rgba(0,255,136,0.3); background: #1a1a1a; overflow: hidden; }
+        .wheel-pointer { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 20px solid var(--neon-blue); position: absolute; top: -10px; left: calc(50% - 10px); z-index: 10; }
+
+        /* Inputs & Selects */
+        input, select { width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid var(--border-color); color: #fff; border-radius: 8px; margin-top: 8px; margin-bottom: 12px; }
+        .with-img { display: flex; align-items: center; gap: 10px; background: #1a1a1a; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; cursor: pointer; }
+        .with-img img { width: 30px; height: 30px; object-fit: contain; }
     </style>
 </head>
 <body>
 
-<div class="container" id="appContent">
-    <h2>Vortex Ads</h2>
-
-    <!-- Balans bölməsi -->
-    <div class="card">
-        <div>Cari Balansınız:</div>
-        <div class="balance-val" id="userBalance">0.00 AZN</div>
-    </div>
-
-    <!-- Reklam Sayğacı və Izləmə -->
-    <div class="card">
-        <h3>Reklam Izlə</h3>
-        <p>Günün Reklamları: <strong id="adCountDisplay">0/50</strong></p>
-        <button class="btn btn-main" onclick="watchAd()">Reklama Bax (+0.02 AZN)</button>
-    </div>
-
-    <!-- Görevlər (Sosial Şəbəkələr) -->
-    <div class="card">
-        <h3>Tapşırıqlar</h3>
-        <a href="https://t.me/vortexadss" target="_blank" class="btn btn-task">Telegram Kanalına Qoşul</a>
-        <a href="https://www.tiktok.com/@vortexadss?_r=1&_t=ZS-9AbURj2bpbi" target="_blank" class="btn btn-task" style="background: #000; color:#fff;">TikTok-da İzlə</a>
-        <a href="https://www.instagram.com/vortexadss?exln=Z3kwajVsZ3J4Zmlp" target="_blank" class="btn btn-task" style="background: #e1306c; color:#fff;">Instagram-da İzlə</a>
-    </div>
-
-    <!-- Çıxarış Sorğusu -->
-    <div class="card">
-        <h3>Pulu Çıxart</h3>
-        <label>Ödəniş Üsulu Seçin:</label>
-        <div class="payment-methods">
-            <img src="Azercell.jpg" alt="Azercell" onclick="selectMethod('Azercell', this)">
-            <img src="Bakcell.jpg" alt="Bakcell" onclick="selectMethod('Bakcell', this)">
-            <img src="Nar.jpg" alt="Nar" onclick="selectMethod('Nar', this)">
-            <img src="M10.jpg" alt="M10" onclick="selectMethod('M10', this)">
-            <img src="Kart.jpg" alt="Kart" onclick="selectMethod('Bank Kartı', this)">
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="balance-box">
+            <div>Balans: <span id="userBalance">0.00</span> AZN</div>
+            <div id="coinArea" style="display: none;">Coin: <span id="userCoins">0</span></div>
         </div>
-        <input type="text" id="withdrawAccount" placeholder="Nömrə və ya Kart məlumatı">
-        <input type="number" id="withdrawAmount" placeholder="Məbləğ (AZN)">
-        <button class="btn btn-main" onclick="requestWithdrawal()">Sorğu Göndər</button>
+        <div id="vipBadge" style="color: gold; font-weight: bold; display: none;">👑 VIP</div>
+    </div>
+
+    <!-- REKLAM BÖLMƏSİ -->
+    <div id="adsSection" class="section active">
+        <div class="card">
+            <h3>Günlük Reklamlar</h3>
+            <p style="font-size: 13px; color: #aaa; margin: 5px 0 15px 0;">İzlənilən: <span id="watchedAds">0</span> / 50</p>
+            <button class="btn" id="watchAdBtn" onclick="watchAd(1)">Reklama Bax və Qazan</button>
+        </div>
+        <div class="card" style="position: relative;">
+            <div id="lockedAdOverlay" style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.8); display: flex; flex-direction:column; justify-content:center; align-items:center; border-radius:12px; z-index:2;">
+                <p style="margin-bottom: 10px; font-weight: bold;">🔓 Açmaq üçün 2 AZN ödə</p>
+                <button class="btn" style="width: auto; padding: 8px 15px;" onclick="unlockSecondAds()">Kilidi Aç</button>
+            </div>
+            <h3>Əlavə 50 Reklam</h3>
+            <p style="font-size: 13px; color: #aaa; margin: 5px 0 15px 0;">İzlənilən: <span id="watchedAds2">0</span> / 50</p>
+            <button class="btn" id="watchAd2Btn" onclick="watchAd(2)">2-ci Paketə Bax</button>
+        </div>
+    </div>
+
+    <!-- TAPŞIRIQAR BÖLMƏSİ -->
+    <div id="tasksSection" class="section">
+        <div class="card">
+            <h3>Tapşırıqlar (+5 Coin)</h3>
+            <div style="margin-top: 15px;" id="taskList">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span>TikTok Hesabını İzlə</span>
+                    <button class="btn" style="width:auto; margin:0; padding:6px 12px;" onclick="completeTask('tiktok')">Yerinə Yetir</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span>Instagram Hesabını İzlə</span>
+                    <button class="btn" style="width:auto; margin:0; padding:6px 12px;" onclick="completeTask('instagram')">Yerinə Yetir</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Telegram Kanalına Abunə Ol</span>
+                    <button class="btn" style="width:auto; margin:0; padding:6px 12px;" onclick="completeTask('telegram')">Yerinə Yetir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ÇARX BÖLMƏSİ -->
+    <div id="wheelSection" class="section">
+        <div class="card">
+            <h3 style="text-align: center;">Bəxt Çarxı</h3>
+            <p style="font-size: 12px; color: #aaa; text-align: center; margin-top: 5px;">Hər fırlatma üçün 10 Coin xərclənir</p>
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <div class="wheel" id="rouletteWheel">
+                    <!-- Çarx Sektorları -->
+                    <div style="position:absolute; width:100%; height:100%; display:flex; justify-content:center; align-items:flex-start; padding-top:10px; font-size:11px; font-weight:bold;">💣 Bomba</div>
+                </div>
+            </div>
+            <button class="btn" onclick="spinWheel()">Çarxı Fırlat (10 Coin)</button>
+        </div>
+    </div>
+
+    <!-- LİDERLƏR CƏDVƏLİ -->
+    <div id="leaderboardSection" class="section">
+        <div class="card">
+            <h3>Top 10 Liderlər</h3>
+            <div id="leaderboardList" style="margin-top: 10px; font-size: 14px;">
+                <!-- Dinamik doldurulacaq -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFİL BÖLMƏSİ -->
+    <div id="profileSection" class="section">
+        <div class="card">
+            <h3>Profil Məlumatları</h3>
+            <p style="margin-top: 10px;">Ad: <span id="profileName">-</span></p>
+            <p style="margin-top: 5px;">Balans: <span id="profileBalance">0.00</span> AZN</p>
+            <button class="btn" onclick="buyVip()" style="background: gold; color: #000; margin-top: 15px;">👑 VIP Status Al (5 AZN)</button>
+        </div>
+        <div class="card">
+            <h3>Referal Sistemi</h3>
+            <p style="font-size: 13px; color: #aaa; margin-top: 5px;">Dostlarını dəvət et, qazan!</p>
+            <input type="text" id="refLink" readonly style="font-size: 12px;">
+            <button class="btn" onclick="copyRefLink()">Linki Kopyala</button>
+        </div>
+        <div class="card">
+            <h3>Mağaza</h3>
+            <p style="font-size: 13px; color: #aaa; margin-top: 5px;">Profil çərçivələri və bəzəklər tezliklə!</p>
+        </div>
+    </div>
+
+    <!-- ÇIXARIŞ BÖLMƏSİ -->
+    <div id="withdrawSection" class="section">
+        <div class="card">
+            <h3>Çıxarış Et (Min: 7 AZN)</h3>
+            <label>Ödəniş Metodu:</label>
+            <select id="withdrawMethod" onchange="toggleWithdrawFields()">
+                <option value="card">Bank Kartı</option>
+                <option value="m10">M10</option>
+                <option value="mobile">Mobil Operator</option>
+            </select>
+
+            <!-- Bank Kartı sahələri -->
+            <div id="cardFields">
+                <label>Bankın Adı:</label>
+                <input type="text" id="bankName" placeholder="Məsələn: Leobank, Birbank">
+                <label>16 Rəqəmli Kart Nömrəsi:</label>
+                <input type="text" id="cardNumber" maxlength="16" placeholder="xxxx xxxx xxxx xxxx">
+            </div>
+
+            <!-- M10 sahələri -->
+            <div id="m10Fields" style="display: none;">
+                <label>Operator Kodu:</label>
+                <select id="m10Prefix">
+                    <option value="050">050</option>
+                    <option value="051">051</option>
+                    <option value="055">055</option>
+                    <option value="010">010</option>
+                    <option value="099">099</option>
+                    <option value="077">077</option>
+                    <option value="070">070</option>
+                </select>
+                <label>Nömrə (7 rəqəm):</label>
+                <input type="text" id="m10Number" maxlength="7" placeholder="1234567">
+            </div>
+
+            <!-- Mobil Operator sahələri -->
+            <div id="mobileFields" style="display: none;">
+                <label>Operator:</label>
+                <select id="mobileOperator" onchange="updateMobilePrefixes()">
+                    <option value="azercell">Azercell</option>
+                    <option value="bakcell">Bakcell</option>
+                    <option value="nar">Nar</option>
+                </select>
+                <label>Operator Kodu:</label>
+                <select id="mobilePrefix"></select>
+                <label>Nömrə (7 rəqəm):</label>
+                <input type="text" id="mobileNumber" maxlength="7" placeholder="1234567">
+            </div>
+
+            <label>Məbləğ (AZN):</label>
+            <input type="number" id="withdrawAmount" placeholder="Min. 7 AZN">
+            <button class="btn" onclick="requestWithdraw()">Çıxarış Et</button>
+        </div>
+
+        <div class="card">
+            <h3>Çıxarış Tarixçəsi & İzləmə</h3>
+            <div id="withdrawHistory" style="font-size: 13px; margin-top: 10px;"></div>
+        </div>
     </div>
 </div>
 
-<div class="container banned-msg" id="bannedScreen">
-    <h2>HESABINIZ BANLANIB!</h2>
-    <p>Qaydaları pozduğunuz üçün hesabınız dondurulub.</p>
+<!-- Bottom Navigation Bar -->
+<div class="nav-bar">
+    <button class="nav-item active" onclick="switchTab('adsSection', this)">
+        <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15h3v-2H8v2zm0-4h8V9H8v2z"/></svg>
+        Reklam
+    </button>
+    <button class="nav-item" onclick="switchTab('tasksSection', this)">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        Tapşırıq
+    </button>
+    <button class="nav-item" onclick="switchTab('wheelSection', this); document.getElementById('coinArea').style.display='block';">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        Çarx
+    </button>
+    <button class="nav-item" onclick="switchTab('leaderboardSection', this)">
+        <svg viewBox="0 0 24 24"><path d="M16 11V3H8v8H2v10h20V11h-6zm-6-6h4v14h-4V5zm-6 8h4v6H4v-6zm16 6h-4v-4h4v4z"/></svg>
+        Liderlər
+    </button>
+    <button class="nav-item" onclick="switchTab('profileSection', this)">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Profil
+    </button>
+    <button class="nav-item" onclick="switchTab('withdrawSection', this)">
+        <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        Çıxarış
+    </button>
 </div>
 
 <script>
-    let selectedPaymentMethod = '';
+    // Firebase Konfiqurasiyası
+    const firebaseConfig = { databaseURL: "https://adss-8257b-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // İlkin məlumatların yüklənməsi
-    function loadUserData() {
-        let isBanned = localStorage.getItem('user_banned') === 'true';
-        if (isBanned) {
-            document.getElementById('appContent').style.display = 'none';
-            document.getElementById('bannedScreen').style.display = 'block';
-            return;
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+    let user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : { id: 123456, first_name: "TestUser" };
+
+    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, ads2Unlocked: false };
+
+    // İstifadəçi məlumatlarını Firebase-dən oxumaq
+    const userRef = db.ref('users/' + user.id);
+    userRef.on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            userData = snapshot.val();
         } else {
-            document.getElementById('appContent').style.display = 'block';
-            document.getElementById('bannedScreen').style.display = 'none';
+            userRef.set({ name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, ads2Unlocked: false });
         }
+        updateUI();
+    });
 
-        let balance = parseFloat(localStorage.getItem('user_balance') || '0.00');
-        let adsWatched = parseInt(localStorage.getItem('user_ads_watched') || '0');
+    function updateUI() {
+        document.getElementById('userBalance').innerText = Number(userData.balance).toFixed(2);
+        document.getElementById('userCoins').innerText = userData.coins || 0;
+        document.getElementById('watchedAds').innerText = userData.watchedAds || 0;
+        document.getElementById('watchedAds2').innerText = userData.watchedAds2 || 0;
+        document.getElementById('profileName').innerText = user.first_name;
+        document.getElementById('profileBalance').innerText = Number(userData.balance).toFixed(2);
+        
+        if (userData.isVip) {
+            document.getElementById('vipBadge').style.display = 'block';
+        }
+        if (userData.ads2Unlocked) {
+            document.getElementById('lockedAdOverlay').style.display = 'none';
+        }
+        document.getElementById('refLink').value = `https://t.me/YourBotName?start=${user.id}`;
+    }
 
-        document.getElementById('userBalance').innerText = balance.toFixed(2) + ' AZN';
-        document.getElementById('adCountDisplay').innerText = adsWatched + '/50';
-
-        // Bot istifadəçi sayını artırmaq (ilkin girişdə)
-        if (!localStorage.getItem('user_registered')) {
-            localStorage.setItem('user_registered', 'true');
-            let totalUsers = parseInt(localStorage.getItem('bot_total_users') || '0');
-            localStorage.setItem('bot_total_users', totalUsers + 1);
+    function switchTab(sectionId, btnElement) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        btnElement.classList.add('active');
+        
+        if(sectionId !== 'wheelSection') {
+            document.getElementById('coinArea').style.display = 'none';
         }
     }
 
-    function selectMethod(method, el) {
-        selectedPaymentMethod = method;
-        document.querySelectorAll('.payment-methods img').forEach(img => img.classList.remove('selected'));
-        el.classList.add('selected');
-    }
-
-    function watchAd() {
-        let adsWatched = parseInt(localStorage.getItem('user_ads_watched') || '0');
-        if (adsWatched >= 50) {
-            alert('Bu gün üçün maksimum reklam limitinə çatdınız (50/50).');
+    // Reklam İzleme Fonksiyonalığı (Monetag)
+    function watchAd(packageNum) {
+        if(packageNum === 1 && userData.watchedAds >= 50) {
+            alert("Günlük 100% reklam limitiniz doldu!");
+            return;
+        }
+        if(packageNum === 2 && userData.watchedAds2 >= 50) {
+            alert("İkinci paket reklam limitiniz doldu!");
             return;
         }
 
-        adsWatched += 1;
-        let balance = parseFloat(localStorage.getItem('user_balance') || '0.00') + 0.02;
-        let dailyTotalAds = parseInt(localStorage.getItem('daily_total_ads') || '0') + 1;
-
-        localStorage.setItem('user_ads_watched', adsWatched);
-        localStorage.setItem('user_balance', balance);
-        localStorage.setItem('daily_total_ads', dailyTotalAds);
-
-        loadUserData();
-        alert('Reklam izlənildi! +0.02 AZN qazandınız.');
+        // Monetag SDK çağrısı
+        if (typeof show_12046628 === 'function') {
+            show_12046628().then(() => {
+                if(packageNum === 1) {
+                    userData.watchedAds = (userData.watchedAds || 0) + 1;
+                    userData.balance += 0.05; // hər reklama görə balans artımı
+                } else {
+                    userData.watchedAds2 = (userData.watchedAds2 || 0) + 1;
+                    userData.balance += 0.08;
+                }
+                userRef.update(userData);
+                alert('Reklama baxıldı və balansınıza əlavə edildi!');
+            }).catch(e => {
+                alert('Reklam yüklənərkən xəta baş verdi.');
+            });
+        } else {
+            // Test rejimi
+            if(packageNum === 1) userData.watchedAds++; else userData.watchedAds2++;
+            userData.balance += 0.05;
+            userRef.update(userData);
+            alert('Reklam izlənildi (Test rejimi)!');
+        }
     }
 
-    function requestWithdrawal() {
-        let account = document.getElementById('withdrawAccount').value;
+    function unlockSecondAds() {
+        if(userData.balance >= 2) {
+            userData.balance -= 2;
+            userData.ads2Unlocked = true;
+            userRef.update(userData);
+            alert("İkinci reklam paketi açıldı!");
+        } else {
+            alert("Balansınızda kifayət qədər vəsait yoxdur (Min: 2 AZN).");
+        }
+    }
+
+    function completeTask(taskType) {
+        userData.coins = (userData.coins || 0) + 5;
+        userRef.update(userData);
+        alert("Tapşırıq tamamlandı! +5 Coin qazandınız.");
+    }
+
+    function buyVip() {
+        if(userData.balance >= 5) {
+            userData.balance -= 5;
+            userData.isVip = true;
+            userRef.update(userData);
+            alert("VIP statusunuz aktivləşdirildi!");
+        } else {
+            alert("Balansınızda kifayət qədər vəsait yoxdur (5 AZN tələb olunur).");
+        }
+    }
+
+    function copyRefLink() {
+        let copyText = document.getElementById("refLink");
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert("Referal link kopyalandı!");
+    }
+
+    // Çarx Fırlatma
+    function spinWheel() {
+        if((userData.coins || 0) < 10) {
+            alert("Çarxı fırlatmaq üçün 10 coin lazımdır!");
+            return;
+        }
+        userData.coins -= 10;
+        
+        // Sadələşdirilmiş ehtimallar
+        let prizes = ["Bomba", "Bomba", "Bomba", "Bomba", "Bomba", "2 AZN", "2 AZN"];
+        let prize = prizes[Math.floor(Math.random() * prizes.length)];
+        
+        if(prize.includes("AZN")) {
+            userData.balance += 2;
+            alert("Təbriklər! 2 AZN qazandınız!");
+        } else {
+            alert("Təəssüf, bomba çıxdı!");
+        }
+        userRef.update(userData);
+    }
+
+    // Çıxarış formaları
+    function toggleWithdrawFields() {
+        let method = document.getElementById('withdrawMethod').value;
+        document.getElementById('cardFields').style.display = method === 'card' ? 'block' : 'none';
+        document.getElementById('m10Fields').style.display = method === 'm10' ? 'block' : 'none';
+        document.getElementById('mobileFields').style.display = method === 'mobile' ? 'block' : 'none';
+    }
+
+    function updateMobilePrefixes() {
+        let op = document.getElementById('mobileOperator').value;
+        let prefixSelect = document.getElementById('mobilePrefix');
+        prefixSelect.innerHTML = '';
+        let codes = op === 'azercell' ? ['050', '051', '010'] : (op === 'bakcell' ? ['055', '099'] : ['070', '077']);
+        codes.forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c; opt.innerText = c;
+            prefixSelect.appendChild(opt);
+        });
+    }
+    updateMobilePrefixes();
+
+    function requestWithdraw() {
         let amount = parseFloat(document.getElementById('withdrawAmount').value);
-        let balance = parseFloat(localStorage.getItem('user_balance') || '0.00');
+        if(isNaN(amount) || amount < 7) {
+            alert("Minimum çıxarış məbləği 7 AZN-dir!");
+            return;
+        }
+        if(userData.balance < amount) {
+            alert("Balansınızda kifayət qədər vəsait yoxdur!");
+            return;
+        }
+        userData.balance -= amount;
+        userRef.update(userData);
 
-        if (!selectedPaymentMethod) { alert('Lütfən ödəniş üsulunu seçin!'); return; }
-        if (!account) { alert('Lütfən hesabı/nömrəni qeyd edin!'); return; }
-        if (isNaN(amount) || amount <= 0) { alert('Düzgün məbləğ daxil edin!'); return; }
-        if (amount > balance) { alert('Balansınızda kifayət qədər vəsait yoxdur!'); return; }
-
-        let withdrawals = JSON.parse(localStorage.getItem('withdraw_requests') || '[]');
-        withdrawals.push({
-            method: selectedPaymentMethod,
-            account: account,
+        // Firebase-ə çıxarış tələbi göndərmək
+        db.ref('withdraws').push({
+            userId: user.id,
+            userName: user.first_name,
             amount: amount,
+            status: "Gözləmədədir",
             date: new Date().toLocaleString()
         });
-
-        // Balansı çıxırıq
-        localStorage.setItem('user_balance', balance - amount);
-        localStorage.setItem('withdraw_requests', JSON.stringify(withdrawals));
-
-        loadUserData();
-        alert('Çıxarış sorğusu uğurla göndərildi!');
+        alert("Çıxarış tələbiniz göndərildi. Canlı izləmədən İzləyə bilərsiniz.");
     }
 
-    setInterval(loadUserData, 1000); // Admin paneldən gələn dəyişiklikləri canlı izləmək üçün
-    loadUserData();
-</script>
+    // Çıxarış tarixçəsini çəkmək
+    db.ref('withdraws').orderByChild('userId').equalTo(user.id).on('value', snapshot => {
+        let html = '';
+        snapshot.forEach(child => {
+            let w = child.val();
+            html += `<div style="padding:5px 0; border-bottom:1px solid #222;">Məbləğ: ${w.amount} AZN - Status: <b>${w.status}</b></div>`;
+        });
+        document.getElementById('withdrawHistory').innerHTML = html || 'Tələb yoxdur.';
+    });
 
+    // Liderlər cədvəli
+    db.ref('users').orderByChild('balance').limitToLast(10).on('value', snapshot => {
+        let list = [];
+        snapshot.forEach(child => { list.push(child.val()); });
+        list.reverse();
+        let html = '';
+        list.forEach((u, index) => {
+            html += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #222;"><span>#${index+1} ${u.name || 'İstifadəçi'}</span><span>${Number(u.balance || 0).toFixed(2)} AZN</span></div>`;
+        });
+        document.getElementById('leaderboardList').innerHTML = html;
+    });
+</script>
 </body>
 </html>
