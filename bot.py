@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
 TOKEN = "8817825578:AAFxfd2h0GrYKIaM7wRKoFQoXYc9HA0jP0Q"
-WEB_APP_URL = "SINI_VEYA_GITHUP_PAGES_LINKINIZ_BURAYA_YAZILSIN/index.html"
+WEB_APP_URL = "https://redchatt.github.io/ads/"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
