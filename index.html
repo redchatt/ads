@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vortex Ads - Qazan</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #121212; color: #ffffff; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 450px; width: 100%; background: #1e1e1e; padding: 20px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h2, h3 { text-align: center; margin-bottom: 15px; color: #00e676; }
+        
+        .card { background: #2a2a2a; padding: 15px; border-radius: 10px; margin-bottom: 15px; text-align: center; }
+        .balance-val { font-size: 24px; font-weight: bold; color: #ffeb3b; }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; transition: 0.2s; }
+        .btn-main { background: #00e676; color: #000; }
+        .btn-main:hover { background: #00c853; }
+        .btn-task { background: #2979ff; color: #fff; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-task:hover { background: #2962ff; }
+        
+        .payment-methods { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        .payment-methods img { width: 60px; height: 40px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 2px solid transparent; }
+        .payment-methods img.selected { border-color: #00e676; }
+        
+        input, select { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: 1px solid #444; background: #333; color: #fff; }
+        .banned-msg { color: #ff5252; text-align: center; font-size: 18px; padding: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="appContent">
+    <h2>Vortex Ads</h2>
+
+    <!-- Balans bölməsi -->
+    <div class="card">
+        <div>Cari Balansınız:</div>
+        <div class="balance-val" id="userBalance">0.00 AZN</div>
+    </div>
+
+    <!-- Reklam Sayğacı və Izləmə -->
+    <div class="card">
+        <h3>Reklam Izlə</h3>
+        <p>Günün Reklamları: <strong id="adCountDisplay">0/50</strong></p>
+        <button class="btn btn-main" onclick="watchAd()">Reklama Bax (+0.02 AZN)</button>
+    </div>
+
+    <!-- Görevlər (Sosial Şəbəkələr) -->
+    <div class="card">
+        <h3>Tapşırıqlar</h3>
+        <a href="https://t.me/vortexadss" target="_blank" class="btn btn-task">Telegram Kanalına Qoşul</a>
+        <a href="https://www.tiktok.com/@vortexadss?_r=1&_t=ZS-9AbURj2bpbi" target="_blank" class="btn btn-task" style="background: #000; color:#fff;">TikTok-da İzlə</a>
+        <a href="https://www.instagram.com/vortexadss?exln=Z3kwajVsZ3J4Zmlp" target="_blank" class="btn btn-task" style="background: #e1306c; color:#fff;">Instagram-da İzlə</a>
+    </div>
+
+    <!-- Çıxarış Sorğusu -->
+    <div class="card">
+        <h3>Pulu Çıxart</h3>
+        <label>Ödəniş Üsulu Seçin:</label>
+        <div class="payment-methods">
+            <img src="Azercell.jpg" alt="Azercell" onclick="selectMethod('Azercell', this)">
+            <img src="Bakcell.jpg" alt="Bakcell" onclick="selectMethod('Bakcell', this)">
+            <img src="Nar.jpg" alt="Nar" onclick="selectMethod('Nar', this)">
+            <img src="M10.jpg" alt="M10" onclick="selectMethod('M10', this)">
+            <img src="Kart.jpg" alt="Kart" onclick="selectMethod('Bank Kartı', this)">
+        </div>
+        <input type="text" id="withdrawAccount" placeholder="Nömrə və ya Kart məlumatı">
+        <input type="number" id="withdrawAmount" placeholder="Məbləğ (AZN)">
+        <button class="btn btn-main" onclick="requestWithdrawal()">Sorğu Göndər</button>
+    </div>
+</div>
+
+<div class="container banned-msg" id="bannedScreen">
+    <h2>HESABINIZ BANLANIB!</h2>
+    <p>Qaydaları pozduğunuz üçün hesabınız dondurulub.</p>
+</div>
+
+<script>
+    let selectedPaymentMethod = '';
+
+    // İlkin məlumatların yüklənməsi
+    function loadUserData() {
+        let isBanned = localStorage.getItem('user_banned') === 'true';
+        if (isBanned) {
+            document.getElementById('appContent').style.display = 'none';
+            document.getElementById('bannedScreen').style.display = 'block';
+            return;
+        } else {
+            document.getElementById('appContent').style.display = 'block';
+            document.getElementById('bannedScreen').style.display = 'none';
+        }
+
+        let balance = parseFloat(localStorage.getItem('user_balance') || '0.00');
+        let adsWatched = parseInt(localStorage.getItem('user_ads_watched') || '0');
+
+        document.getElementById('userBalance').innerText = balance.toFixed(2) + ' AZN';
+        document.getElementById('adCountDisplay').innerText = adsWatched + '/50';
+
+        // Bot istifadəçi sayını artırmaq (ilkin girişdə)
+        if (!localStorage.getItem('user_registered')) {
+            localStorage.setItem('user_registered', 'true');
+            let totalUsers = parseInt(localStorage.getItem('bot_total_users') || '0');
+            localStorage.setItem('bot_total_users', totalUsers + 1);
+        }
+    }
+
+    function selectMethod(method, el) {
+        selectedPaymentMethod = method;
+        document.querySelectorAll('.payment-methods img').forEach(img => img.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function watchAd() {
+        let adsWatched = parseInt(localStorage.getItem('user_ads_watched') || '0');
+        if (adsWatched >= 50) {
+            alert('Bu gün üçün maksimum reklam limitinə çatdınız (50/50).');
+            return;
+        }
+
+        adsWatched += 1;
+        let balance = parseFloat(localStorage.getItem('user_balance') || '0.00') + 0.02;
+        let dailyTotalAds = parseInt(localStorage.getItem('daily_total_ads') || '0') + 1;
+
+        localStorage.setItem('user_ads_watched', adsWatched);
+        localStorage.setItem('user_balance', balance);
+        localStorage.setItem('daily_total_ads', dailyTotalAds);
+
+        loadUserData();
+        alert('Reklam izlənildi! +0.02 AZN qazandınız.');
+    }
+
+    function requestWithdrawal() {
+        let account = document.getElementById('withdrawAccount').value;
+        let amount = parseFloat(document.getElementById('withdrawAmount').value);
+        let balance = parseFloat(localStorage.getItem('user_balance') || '0.00');
+
+        if (!selectedPaymentMethod) { alert('Lütfən ödəniş üsulunu seçin!'); return; }
+        if (!account) { alert('Lütfən hesabı/nömrəni qeyd edin!'); return; }
+        if (isNaN(amount) || amount <= 0) { alert('Düzgün məbləğ daxil edin!'); return; }
+        if (amount > balance) { alert('Balansınızda kifayət qədər vəsait yoxdur!'); return; }
+
+        let withdrawals = JSON.parse(localStorage.getItem('withdraw_requests') || '[]');
+        withdrawals.push({
+            method: selectedPaymentMethod,
+            account: account,
+            amount: amount,
+            date: new Date().toLocaleString()
+        });
+
+        // Balansı çıxırıq
+        localStorage.setItem('user_balance', balance - amount);
+        localStorage.setItem('withdraw_requests', JSON.stringify(withdrawals));
+
+        loadUserData();
+        alert('Çıxarış sorğusu uğurla göndərildi!');
+    }
+
+    setInterval(loadUserData, 1000); // Admin paneldən gələn dəyişiklikləri canlı izləmək üçün
+    loadUserData();
+</script>
+
+</body>
+</html>
