@@ -110,7 +110,7 @@
 
 <div class="container">
     <div class="header">
-        <div class="brand-title">TELEGRAM EARN</div>
+        <div class="brand-title">VORTEX ADS</div>
         <div class="balance-box">
             <div>Balans</div>
             <span><span id="userBalance">0.00000</span> AZN</span>
@@ -130,29 +130,30 @@
                 <button class="btn" style="width: auto; padding: 8px 18px;" onclick="unlockSecondAds()">Kilidi Aç (3 AZN)</button>
             </div>
             <h3>İkinci 50 Reklam Paketi</h3>
-            <p style="font-size: 12px; color: #aaa; margin-bottom: 8px;">Baxılan: <b style="color:#fff" id="watchedAds2">0</b> / 50 (Qazanc: 0.00020 AZN)</p>
+            <p style="font-size: 12px; color: #aaa; margin-bottom: 6px;">Baxılan: <b style="color:#fff" id="watchedAds2">0</b> / 50 (Qazanc: 0.00020 AZN)</p>
+            <p style="font-size: 11px; color: #888; line-height: 1.4; margin-bottom: 10px;"><b>Məlumat:</b> Bu paket 3 AZN ödəniş edilərək açılır. Kilid açıldıqdan sonra gündəlik əlavə 50 reklam izləyə bilərsiniz və hər baxışa görə balansınıza 0.00020 AZN əlavə olunur.</p>
             <button class="btn" onclick="watchAd(2)">2-ci Paketi İzlə</button>
         </div>
     </div>
 
-    <!-- TAPŞIRIQLAR BÖLMƏSİ (DÜZƏLDİLDİ) -->
+    <!-- TAPŞIRIQLAR BÖLMƏSİ (REAL LİNKLər İLƏ) -->
     <div id="tasksSection" class="section">
         <div class="card">
             <h3>Tapşırıqlar (+5 Coin)</h3>
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
-                <span>TikTok Hesabını İzlə</span>
-                <button class="btn" id="taskTikTok" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('tiktok', 'https://tiktok.com/@youraccount', this)">Yerinə Yetir</button>
+                <span>TikTok Kanalını İzlə</span>
+                <button class="btn" id="taskTikTok" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('tiktok', 'https://www.tiktok.com/@vortexadss?_r=1&_t=ZS-9Aegsdzb22r', this)">Yerinə Yetir</button>
             </div>
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
-                <span>Instagram Hesabını İzlə</span>
-                <button class="btn" id="taskInstagram" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('instagram', 'https://instagram.com/youraccount', this)">Yerinə Yetir</button>
+                <span>Instagram Səhifəsini İzlə</span>
+                <button class="btn" id="taskInstagram" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('instagram', 'https://www.instagram.com/vortexadss?obrf=Z3kwajVsZ3J4Zmlp', this)">Yerinə Yetir</button>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
                 <span>Telegram Kanalına Abunə Ol</span>
-                <button class="btn" id="taskTelegram" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('telegram', 'https://t.me/yourchannel', this)">Yerinə Yetir</button>
+                <button class="btn" id="taskTelegram" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('telegram', 'https://t.me/vortexadss', this)">Yerinə Yetir</button>
             </div>
         </div>
     </div>
@@ -316,7 +317,6 @@
     let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {} };
     let currentWithdrawMethod = 'card';
 
-    // Səs Sintezatoru
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playWinSound() {
         if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -387,7 +387,6 @@
             document.getElementById('buyVipBtn').disabled = true;
         }
 
-        // Tapşırıqların Yoxlanması
         if(userData.tasks && userData.tasks.tiktok) {
             let b = document.getElementById('taskTikTok'); b.innerText = "Tamamlandı"; b.disabled = true;
         }
@@ -399,10 +398,9 @@
         }
 
         if (userData.ads2Unlocked) document.getElementById('lockedAdOverlay').style.display = 'none';
-        document.getElementById('refLink').value = `https://t.me/YourBotName?start=${user.id}`;
+        document.getElementById('refLink').value = `https://t.me/vortexadss?start=${user.id}`;
     }
 
-    // Tapşırıq İcra Mexanizması
     function doTask(taskId, url, btnElement) {
         if(userData.tasks && userData.tasks[taskId]) {
             alert("Bu tapşırığı artıq icra etmisiniz!"); return;
@@ -470,13 +468,10 @@
         } else { alert("Balansınızda 3 AZN yoxdur."); }
     }
 
-    // 8 HƏDİYYƏ QUTUSUNU AÇMAQ
     function openGiftBox(element) {
         if((userData.coins || 0) < 10) { alert("Qutunu açmaq üçün 10 Coin lazımdır!"); return; }
         userData.coins -= 10;
 
-        // Xüsusi Tənzimlənmiş Ehtimallar:
-        // Bomba, 1 AZN və 2 AZN şansı yüksəkdir, digər yüksək məbləğlər çox gec çıxır.
         let roll = Math.random() * 200; 
 
         if(roll < 120) {
@@ -552,7 +547,6 @@
         alert("Referal link kopyalandı!");
     }
 
-    // LİDERLƏR TABLOSU
     db.ref('users').orderByChild('balance').limitToLast(15).on('value', snapshot => {
         let list = []; snapshot.forEach(c => {
             let u = c.val();
