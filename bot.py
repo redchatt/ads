@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
-# Tərəfinizdən təqdim edilən məlumatlar
+# Sənin Tokenin və GitHub Pages linkin
 TOKEN = "8817825578:AAFxfd2h0GrYKIaM7wRKoFQoXYc9HA0jP0Q"
 WEB_APP_URL = "https://redchatt.github.io/ads/"
 
@@ -13,7 +13,6 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def start_cmd(message: types.Message):
-    # Referal sistemini izləmək üçün id
     args = message.text.split()
     ref_id = args[1] if len(args) > 1 else ""
     
@@ -25,7 +24,7 @@ async def start_cmd(message: types.Message):
     
     await message.answer(
         f"Xoş gəldiniz, {message.from_user.first_name}!\n\n"
-        "Reklam izləyərək, hədiyyə qutularını açaraq və tapşırıqları yerinə yetirərək qazanmaq üçün aşağıdakı düyməyə klikləyin.",
+        "Vortex Ads vasitəsilə reklam izləyərək, hədiyyə qutuları açaraq və tapşırıqları yerinə yetirərək qazanmağa başlayın.",
         reply_markup=markup
     )
 
