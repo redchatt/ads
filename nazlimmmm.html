@@ -11,11 +11,9 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: var(--bg); color: #fff; display: flex; min-height: 100vh; }
 
-        /* Login Screen */
         #loginBox { position: fixed; inset:0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .login-card { background: var(--card); padding: 30px; border-radius: 12px; width: 320px; border: 1px solid #222; text-align: center; }
 
-        /* Sidebar & Layout */
         .sidebar { width: 240px; background: var(--card); border-right: 1px solid #222; padding: 20px; }
         .sidebar h2 { font-size: 18px; color: var(--primary); margin-bottom: 25px; }
         .menu-btn { width: 100%; text-align: left; padding: 12px; background: none; border: none; color: #aaa; cursor: pointer; border-radius: 8px; font-weight: bold; margin-bottom: 5px; }
@@ -25,11 +23,10 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* UI Elements */
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #222; }
-        .stat-card h4 { font-size: 12px; color: #888; text-transform: uppercase; }
-        .stat-card div { font-size: 22px; font-weight: bold; color: var(--primary); margin-top: 5px; }
+        .stat-card h4 { font-size: 11px; color: #888; text-transform: uppercase; }
+        .stat-card div { font-size: 20px; font-weight: bold; color: var(--primary); margin-top: 5px; }
 
         table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; margin-top: 15px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #222; font-size: 13px; }
@@ -43,7 +40,6 @@
 </head>
 <body>
 
-<!-- Login Modal -->
 <div id="loginBox">
     <div class="login-card">
         <h3 style="margin-bottom: 15px;">Admin Girişi</h3>
@@ -53,27 +49,25 @@
     </div>
 </div>
 
-<!-- Admin Panel UI -->
 <div class="sidebar">
-    <h2>⚡ EARN ADMIN</h2>
-    <button class="menu-btn active" onclick="showTab('statsTab', this)">📊 Statistika</button>
-    <button class="menu-btn" onclick="showTab('usersTab', this)">👥 İstifadəçilər</button>
-    <button class="menu-btn" onclick="showTab('withdrawsTab', this)">💳 Çıxarış Tələbləri</button>
-    <button class="menu-btn" onclick="showTab('adsTab', this)">📺 Reklam İdarəetməsi</button>
+    <h2>EARN ADMIN</h2>
+    <button class="menu-btn active" onclick="showTab('statsTab', this)">Statistika</button>
+    <button class="menu-btn" onclick="showTab('usersTab', this)">İstifadəçilər</button>
+    <button class="menu-btn" onclick="showTab('withdrawsTab', this)">Çıxarış Tələbləri</button>
+    <button class="menu-btn" onclick="showTab('adsTab', this)">Reklam İdarəetməsi</button>
 </div>
 
 <div class="main-content">
-    <!-- Statistika -->
     <div id="statsTab" class="tab-content active">
         <h2>Sistem Statistikası</h2>
         <div class="stat-grid" style="margin-top: 15px;">
             <div class="stat-card"><h4>Ümumi İstifadəçi</h4><div id="statUsers">0</div></div>
+            <div class="stat-card"><h4>Ümumi Baxılan Reklam</h4><div id="statTotalAds">0</div></div>
             <div class="stat-card"><h4>Ümumi Balans</h4><div id="statBalance">0 AZN</div></div>
             <div class="stat-card"><h4>Gözləyən Çıxarışlar</h4><div id="statPending">0</div></div>
         </div>
     </div>
 
-    <!-- İstifadəçilər -->
     <div id="usersTab" class="tab-content">
         <h2>İstifadəçi İdarəetməsi</h2>
         <table>
@@ -81,7 +75,7 @@
                 <tr>
                     <th>ID / Ad</th>
                     <th>Balans</th>
-                    <th>VIP</th>
+                    <th>Baxılan Reklam</th>
                     <th>Status</th>
                     <th>Əməliyyatlar</th>
                 </tr>
@@ -90,7 +84,6 @@
         </table>
     </div>
 
-    <!-- Çıxarış Tələbləri -->
     <div id="withdrawsTab" class="tab-content">
         <h2>Çıxarış Tələbləri</h2>
         <table>
@@ -107,12 +100,11 @@
         </table>
     </div>
 
-    <!-- Reklam İdarəetməsi -->
     <div id="adsTab" class="tab-content">
-        <h2>Reklam Sistemi İdarəetməsi</h2>
+        <h2>Reklam İdarəetməsi</h2>
         <div style="background: var(--card); padding: 20px; border-radius: 10px; margin-top: 15px;">
-            <p style="color: #aaa; margin-bottom: 15px;">Aşağıdakı düyməyə basdıqda sistemdəki bütün istifadəçilərin günlük izlədiyi reklam sayğacları anında <b>0</b> sıfırlanacaq.</p>
-            <button class="btn-action btn-danger" style="padding: 12px 20px; font-size: 13px;" onclick="resetAllAds()">🔄 Bütün Reklam Sayğaclarını Sıfırla</button>
+            <p style="color: #aaa; margin-bottom: 15px;">Bütün istifadəçilərin günlük izlədiyi reklam sayğaclarını anında <b>0</b> sıfırlamaq üçün sıfırla düyməsinə basın.</p>
+            <button class="btn-action btn-danger" style="padding: 12px 20px; font-size: 13px;" onclick="resetAllAds()">Bütün Reklam Sayğaclarını Sıfırla</button>
         </div>
     </div>
 </div>
@@ -141,36 +133,34 @@
     }
 
     function loadData() {
-        // İstifadəçiləri Yüklə
         db.ref('users').on('value', snapshot => {
-            let totalUsers = 0, totalBal = 0;
+            let totalUsers = 0, totalBal = 0, totalAdsWatched = 0;
             let html = '';
             snapshot.forEach(child => {
                 let id = child.key;
                 let u = child.val();
                 totalUsers++;
                 totalBal += (u.balance || 0);
+                totalAdsWatched += ((u.watchedAds || 0) + (u.watchedAds2 || 0));
 
                 html += `<tr>
                     <td><b>${u.name || 'İstifadəçi'}</b><br><small style="color:#666">${id}</small></td>
                     <td>${Number(u.balance || 0).toFixed(5)} AZN</td>
-                    <td>${u.isVip ? '👑 VIP' : 'Adi'}</td>
-                    <td>${u.isBanned ? '<b style="color:red">BANLANIB</b>' : '<b style="color:green">Aktiv</b>'}</td>
+                    <td>${(u.watchedAds || 0) + (u.watchedAds2 || 0)} / 100</td>
+                    <td>${u.isBanned ? '<b style="color:red">BLOKLANIB</b>' : '<b style="color:green">Aktiv</b>'}</td>
                     <td>
                         <button class="btn-action btn-success" onclick="modifyBalance('${id}', 1)">+1 AZN</button>
                         <button class="btn-action btn-danger" onclick="modifyBalance('${id}', -1)">-1 AZN</button>
-                        <button class="btn-action ${u.isBanned ? 'btn-success' : 'btn-danger'}" onclick="toggleBan('${id}', ${u.isBanned})">
-                            ${u.isBanned ? 'Banı Aç' : 'Banla'}
-                        </button>
+                        <button class="btn-action btn-danger" onclick="deleteAndBanUser('${id}')">Banla & Sil</button>
                     </td>
                 </tr>`;
             });
             document.getElementById('usersList').innerHTML = html;
             document.getElementById('statUsers').innerText = totalUsers;
+            document.getElementById('statTotalAds').innerText = totalAdsWatched;
             document.getElementById('statBalance').innerText = totalBal.toFixed(2) + " AZN";
         });
 
-        // Çıxarışları Yüklə
         db.ref('withdraws').on('value', snapshot => {
             let pendingCount = 0;
             let html = '';
@@ -203,8 +193,14 @@
         });
     }
 
-    function toggleBan(userId, currentStatus) {
-        db.ref('users/' + userId).update({ isBanned: !currentStatus });
+    // İstifadəçini Banlayıb Bütün Sistemdən Və Liderlərdən Tam Silmək
+    function deleteAndBanUser(userId) {
+        if(confirm("İstifadəçi bloklanaraq baza və liderlər siyahısından tam silinsin?")) {
+            db.ref('users/' + userId).update({ isBanned: true, balance: 0 }).then(() => {
+                db.ref('users/' + userId).remove();
+                alert("İstifadəçi uğurla banlandı və silindi.");
+            });
+        }
     }
 
     function updateWithdraw(id, status) {
@@ -212,12 +208,12 @@
     }
 
     function resetAllAds() {
-        if(confirm("Bütün istifadəçilərin reklam izləmə limiti 0 sıfırlansın?")) {
+        if(confirm("Bütün istifadəçilərin günlük reklam izləmə limiti sıfırlansın?")) {
             db.ref('users').once('value', snapshot => {
                 snapshot.forEach(child => {
                     db.ref('users/' + child.key).update({ watchedAds: 0, watchedAds2: 0 });
                 });
-                alert("Bütün reklam limitləri uğurla sıfırlandı!");
+                alert("Bütün reklam limitləri sıfırlandı!");
             });
         }
     }
