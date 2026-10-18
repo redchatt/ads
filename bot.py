@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
 # Sənin Tokenin və GitHub Pages linkin
-TOKEN = "8817825578:AAFxfd2h0GrYKIaM7wRKoFQoXYc9HA0jP0Q"
+TOKEN = "8817825578:AAH1_BplDCGUp9sTU3S40KmBH0xkQTT1wE4"
 WEB_APP_URL = "https://redchatt.github.io/ads/"
 
 bot = Bot(token=TOKEN)
