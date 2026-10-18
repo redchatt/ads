@@ -3,36 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Earn App</title>
+    <title>Admin Panel - Telegram Earn</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        body { background: #0b0b0b; color: #fff; font-family: sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .card { background: #161616; padding: 20px; border-radius: 10px; border: 1px solid #333; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #333; text-align: left; font-size: 14px; }
-        button { padding: 6px 12px; background: #00ff88; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        button.cancel { background: #ff4444; color: #fff; }
+        :root { --bg: #09090d; --card: #13131a; --primary: #00ff88; --danger: #ff4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg); color: #fff; display: flex; min-height: 100vh; }
+
+        /* Login Screen */
+        #loginBox { position: fixed; inset:0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-card { background: var(--card); padding: 30px; border-radius: 12px; width: 320px; border: 1px solid #222; text-align: center; }
+
+        /* Sidebar & Layout */
+        .sidebar { width: 240px; background: var(--card); border-right: 1px solid #222; padding: 20px; }
+        .sidebar h2 { font-size: 18px; color: var(--primary); margin-bottom: 25px; }
+        .menu-btn { width: 100%; text-align: left; padding: 12px; background: none; border: none; color: #aaa; cursor: pointer; border-radius: 8px; font-weight: bold; margin-bottom: 5px; }
+        .menu-btn.active, .menu-btn:hover { background: rgba(0, 255, 136, 0.1); color: var(--primary); }
+
+        .main-content { flex: 1; padding: 25px; overflow-y: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* UI Elements */
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #222; }
+        .stat-card h4 { font-size: 12px; color: #888; text-transform: uppercase; }
+        .stat-card div { font-size: 22px; font-weight: bold; color: var(--primary); margin-top: 5px; }
+
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; margin-top: 15px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #222; font-size: 13px; }
+        th { background: #1a1a24; color: #888; }
+
+        input { width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; margin-bottom: 10px; }
+        button.btn-action { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; margin-right: 4px; }
+        .btn-success { background: var(--primary); color: #000; }
+        .btn-danger { background: var(--danger); color: #fff; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="card">
-        <h2>Admin Panel - Çıxarış Tələbləri</h2>
+
+<!-- Login Modal -->
+<div id="loginBox">
+    <div class="login-card">
+        <h3 style="margin-bottom: 15px;">Admin Girişi</h3>
+        <input type="text" id="adminUser" placeholder="İstifadəçi adı">
+        <input type="password" id="adminPass" placeholder="Şifrə">
+        <button class="btn-action btn-success" style="width:100%; padding: 10px;" onclick="checkLogin()">Giriş Et</button>
+    </div>
+</div>
+
+<!-- Admin Panel UI -->
+<div class="sidebar">
+    <h2>⚡ EARN ADMIN</h2>
+    <button class="menu-btn active" onclick="showTab('statsTab', this)">📊 Statistika</button>
+    <button class="menu-btn" onclick="showTab('usersTab', this)">👥 İstifadəçilər</button>
+    <button class="menu-btn" onclick="showTab('withdrawsTab', this)">💳 Çıxarış Tələbləri</button>
+    <button class="menu-btn" onclick="showTab('adsTab', this)">📺 Reklam İdarəetməsi</button>
+</div>
+
+<div class="main-content">
+    <!-- Statistika -->
+    <div id="statsTab" class="tab-content active">
+        <h2>Sistem Statistikası</h2>
+        <div class="stat-grid" style="margin-top: 15px;">
+            <div class="stat-card"><h4>Ümumi İstifadəçi</h4><div id="statUsers">0</div></div>
+            <div class="stat-card"><h4>Ümumi Balans</h4><div id="statBalance">0 AZN</div></div>
+            <div class="stat-card"><h4>Gözləyən Çıxarışlar</h4><div id="statPending">0</div></div>
+        </div>
+    </div>
+
+    <!-- İstifadəçilər -->
+    <div id="usersTab" class="tab-content">
+        <h2>İstifadəçi İdarəetməsi</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID / Ad</th>
+                    <th>Balans</th>
+                    <th>VIP</th>
+                    <th>Status</th>
+                    <th>Əməliyyatlar</th>
+                </tr>
+            </thead>
+            <tbody id="usersList"></tbody>
+        </table>
+    </div>
+
+    <!-- Çıxarış Tələbləri -->
+    <div id="withdrawsTab" class="tab-content">
+        <h2>Çıxarış Tələbləri</h2>
         <table>
             <thead>
                 <tr>
                     <th>İstifadəçi</th>
+                    <th>Metod</th>
                     <th>Məbləğ</th>
                     <th>Status</th>
                     <th>Əməliyyat</th>
                 </tr>
             </thead>
-            <tbody id="withdrawRequests">
-                <!-- Dinamik doldurulacaq -->
-            </tbody>
+            <tbody id="withdrawsList"></tbody>
         </table>
+    </div>
+
+    <!-- Reklam İdarəetməsi -->
+    <div id="adsTab" class="tab-content">
+        <h2>Reklam Sistemi İdarəetməsi</h2>
+        <div style="background: var(--card); padding: 20px; border-radius: 10px; margin-top: 15px;">
+            <p style="color: #aaa; margin-bottom: 15px;">Aşağıdakı düyməyə basdıqda sistemdəki bütün istifadəçilərin günlük izlədiyi reklam sayğacları anında <b>0</b> sıfırlanacaq.</p>
+            <button class="btn-action btn-danger" style="padding: 12px 20px; font-size: 13px;" onclick="resetAllAds()">🔄 Bütün Reklam Sayğaclarını Sıfırla</button>
+        </div>
     </div>
 </div>
 
@@ -41,27 +122,104 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    db.ref('withdraws').on('value', snapshot => {
-        let html = '';
-        snapshot.forEach(child => {
-            let id = child.key;
-            let w = child.val();
-            html += `<tr>
-                <td>${w.userName}</td>
-                <td>${w.amount} AZN</td>
-                <td><b>${w.status}</b></td>
-                <td>
-                    <button onclick="updateStatus('${id}', 'Təsdiqləndi')">Təsdiq</button>
-                    <button class="cancel" onclick="updateStatus('${id}', 'Ləğv edildi')">Ləğv</button>
-                </td>
-            </tr>`;
-        });
-        document.getElementById('withdrawRequests').innerHTML = html;
-    });
+    function checkLogin() {
+        let u = document.getElementById('adminUser').value;
+        let p = document.getElementById('adminPass').value;
+        if(u === 'Escobar211_4568' && p === 'AA211_SEMRA') {
+            document.getElementById('loginBox').style.display = 'none';
+            loadData();
+        } else {
+            alert('Giriş məlumatları yanlışdır!');
+        }
+    }
 
-    function updateStatus(id, status) {
+    function showTab(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.menu-btn').forEach(m => m.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function loadData() {
+        // İstifadəçiləri Yüklə
+        db.ref('users').on('value', snapshot => {
+            let totalUsers = 0, totalBal = 0;
+            let html = '';
+            snapshot.forEach(child => {
+                let id = child.key;
+                let u = child.val();
+                totalUsers++;
+                totalBal += (u.balance || 0);
+
+                html += `<tr>
+                    <td><b>${u.name || 'İstifadəçi'}</b><br><small style="color:#666">${id}</small></td>
+                    <td>${Number(u.balance || 0).toFixed(5)} AZN</td>
+                    <td>${u.isVip ? '👑 VIP' : 'Adi'}</td>
+                    <td>${u.isBanned ? '<b style="color:red">BANLANIB</b>' : '<b style="color:green">Aktiv</b>'}</td>
+                    <td>
+                        <button class="btn-action btn-success" onclick="modifyBalance('${id}', 1)">+1 AZN</button>
+                        <button class="btn-action btn-danger" onclick="modifyBalance('${id}', -1)">-1 AZN</button>
+                        <button class="btn-action ${u.isBanned ? 'btn-success' : 'btn-danger'}" onclick="toggleBan('${id}', ${u.isBanned})">
+                            ${u.isBanned ? 'Banı Aç' : 'Banla'}
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('usersList').innerHTML = html;
+            document.getElementById('statUsers').innerText = totalUsers;
+            document.getElementById('statBalance').innerText = totalBal.toFixed(2) + " AZN";
+        });
+
+        // Çıxarışları Yüklə
+        db.ref('withdraws').on('value', snapshot => {
+            let pendingCount = 0;
+            let html = '';
+            snapshot.forEach(child => {
+                let id = child.key;
+                let w = child.val();
+                if(w.status === 'Gözləmədədir') pendingCount++;
+
+                html += `<tr>
+                    <td>${w.userName}</td>
+                    <td>${w.method.toUpperCase()}</td>
+                    <td>${w.amount} AZN</td>
+                    <td><b>${w.status}</b></td>
+                    <td>
+                        <button class="btn-action btn-success" onclick="updateWithdraw('${id}', 'Təsdiqləndi')">Təsdiq</button>
+                        <button class="btn-action btn-danger" onclick="updateWithdraw('${id}', 'Ləğv edildi')">Ləğv</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('withdrawsList').innerHTML = html;
+            document.getElementById('statPending').innerText = pendingCount;
+        });
+    }
+
+    function modifyBalance(userId, amount) {
+        db.ref('users/' + userId).once('value', snapshot => {
+            let u = snapshot.val();
+            let newBal = Math.max(0, (u.balance || 0) + amount);
+            db.ref('users/' + userId).update({ balance: newBal });
+        });
+    }
+
+    function toggleBan(userId, currentStatus) {
+        db.ref('users/' + userId).update({ isBanned: !currentStatus });
+    }
+
+    function updateWithdraw(id, status) {
         db.ref('withdraws/' + id).update({ status: status });
-        alert("Status yeniləndi: " + status);
+    }
+
+    function resetAllAds() {
+        if(confirm("Bütün istifadəçilərin reklam izləmə limiti 0 sıfırlansın?")) {
+            db.ref('users').once('value', snapshot => {
+                snapshot.forEach(child => {
+                    db.ref('users/' + child.key).update({ watchedAds: 0, watchedAds2: 0 });
+                });
+                alert("Bütün reklam limitləri uğurla sıfırlandı!");
+            });
+        }
     }
 </script>
 </body>
