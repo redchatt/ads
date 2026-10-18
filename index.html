@@ -3,80 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Earn Mini App</title>
+    <title>Earn Mini App - Premium Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <!-- Monetag SDK -->
     <script src='//libtl.com/sdk.js' data-zone='12046628' data-sdk='show_12046628'></script>
     <style>
         :root {
-            --bg-color: #000000;
-            --panel-bg: #0c0c0c;
+            --bg-color: #030305;
+            --panel-bg: rgba(18, 18, 26, 0.75);
             --neon-green: #00ff88;
             --neon-blue: #00e1ff;
-            --neon-glow: rgba(0, 255, 136, 0.25);
-            --text-color: #ffffff;
-            --border-color: rgba(255, 255, 255, 0.15);
+            --neon-pink: #ff007f;
+            --neon-gold: #ffd700;
+            --border-color: rgba(0, 255, 136, 0.2);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 80px; }
-        .container { max-width: 480px; margin: 0 auto; padding: 12px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; user-select: none; }
+        body { background-color: var(--bg-color); color: #fff; padding-bottom: 85px; min-height: 100vh; background-image: radial-gradient(circle at 50% 0%, rgba(0,255,136,0.08) 0%, transparent 70%); }
+        .container { max-width: 480px; margin: 0 auto; padding: 14px; }
 
-        /* Header & Balans Sağda */
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border-color); box-shadow: 0 0 20px var(--neon-glow); margin-bottom: 15px; }
-        .brand-title { font-size: 15px; font-weight: 800; color: var(--neon-green); text-shadow: 0 0 8px rgba(0,255,136,0.5); }
+        /* Ban Screen Overlay */
+        #banOverlay { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); backdrop-filter: blur(12px); padding: 14px 18px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 0 25px rgba(0, 255, 136, 0.15); margin-bottom: 16px; }
+        .brand-title { font-size: 16px; font-weight: 900; background: linear-gradient(90deg, var(--neon-green), var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .balance-box { text-align: right; }
-        .balance-box div { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-        .balance-box span { font-size: 16px; font-weight: bold; color: var(--neon-green); }
+        .balance-box div { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-box span { font-size: 18px; font-weight: 800; color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,136,0.5); }
 
-        /* Navigation Sections */
-        .section { display: none; }
-        .section.active { display: block; }
+        /* Section Visibility */
+        .section { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .section.active { display: block; opacity: 1; }
 
-        /* Kartlar və Panellər */
-        .card { background: var(--panel-bg); padding: 16px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 15px; box-shadow: inset 0 0 10px rgba(255,255,136,0.02); }
-        .card h3 { font-size: 15px; margin-bottom: 10px; color: #fff; font-weight: 700; }
+        /* Cards & Buttons */
+        .card { background: var(--panel-bg); backdrop-filter: blur(10px); padding: 18px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        .card h3 { font-size: 15px; margin-bottom: 10px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         
-        /* Ağ düymələr */
-        .btn { width: 100%; background: #ffffff; color: #000000; border: none; padding: 13px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; font-size: 14px; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
-        .btn:hover { background: #e0e0e0; box-shadow: 0 0 20px rgba(255,255,255,0.4); }
-        .btn:disabled { background: #222; color: #555; cursor: not-allowed; box-shadow: none; }
+        .btn { width: 100%; background: #ffffff; color: #000000; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: all 0.25s ease; margin-top: 10px; font-size: 14px; box-shadow: 0 0 20px rgba(255, 255, 255, 0.25); }
+        .btn:active { transform: scale(0.98); background: #e0e0e0; }
 
         /* Bottom Nav */
-        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(12,12,12,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color); z-index: 100; max-width: 480px; margin: 0 auto; }
-        .nav-item { background: none; border: none; color: #666; font-size: 10px; cursor: pointer; text-align: center; transition: 0.2s; }
-        .nav-item.active { color: var(--neon-green); text-shadow: 0 0 8px rgba(0,255,136,0.4); }
-        .nav-item svg { width: 20px; height: 20px; display: block; margin: 0 auto 2px; fill: currentColor; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(15px); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 100; max-width: 480px; margin: 0 auto; }
+        .nav-item { background: none; border: none; color: #777; font-size: 10px; cursor: pointer; text-align: center; transition: 0.2s; font-weight: 600; }
+        .nav-item.active { color: var(--neon-green); text-shadow: 0 0 12px rgba(0,255,136,0.6); }
+        .nav-item svg { width: 22px; height: 22px; display: block; margin: 0 auto 3px; fill: currentColor; }
 
-        /* Çarx (Roulette) */
-        .wheel-container { text-align: center; position: relative; margin: 15px 0; }
-        .wheel { width: 220px; height: 220px; border-radius: 50%; border: 4px solid var(--neon-green); margin: 0 auto; position: relative; transition: transform 4s cubic-bezier(0.15, 0.95, 0.15, 1); box-shadow: 0 0 25px rgba(0,255,136,0.4); background: radial-gradient(circle, #1a1a1a 0%, #050505 100%); overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .wheel-pointer { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 16px solid var(--neon-blue); position: absolute; top: -6px; left: calc(50% - 8px); z-index: 10; filter: drop-shadow(0 0 5px var(--neon-blue)); }
-        .wheel-sector { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.05); }
+        /* Wheel (Roulette) Style */
+        .wheel-wrapper { text-align: center; position: relative; margin: 20px 0; display: flex; flex-direction: column; align-items: center; }
+        .wheel-container { position: relative; width: 240px; height: 240px; }
+        .wheel-pointer { width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 20px solid var(--neon-pink); position: absolute; top: -12px; left: calc(50% - 10px); z-index: 20; filter: drop-shadow(0 0 8px var(--neon-pink)); }
+        .wheel { width: 100%; height: 100%; border-radius: 50%; border: 5px solid var(--neon-green); position: relative; transition: transform 4s cubic-bezier(0.1, 0.9, 0.1, 1); box-shadow: 0 0 30px rgba(0,255,136,0.3); background: conic-gradient(#111 0deg 45deg, #222 45deg 90deg, #111 90deg 135deg, #222 135deg 180deg, #111 180deg 225deg, #222 225deg 270deg, #111 270deg 315deg, #222 315deg 360deg); overflow: hidden; }
+        .wheel-label { position: absolute; top: 50%; left: 50%; width: 50%; height: 20px; margin-top: -10px; transform-origin: 0% 50%; font-size: 11px; font-weight: bold; color: var(--neon-green); text-align: right; padding-right: 12px; }
 
-        /* Inputs & Selects */
-        input, select { width: 100%; padding: 12px; background: #050505; border: 1px solid var(--border-color); color: #fff; border-radius: 10px; margin-top: 6px; margin-bottom: 12px; font-size: 13px; outline: none; }
-        input:focus, select:focus { border-color: var(--neon-green); box-shadow: 0 0 8px rgba(0,255,136,0.3); }
-        
-        /* Ödəniş üsulu şəkilləri vizual blok */
-        .method-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
-        .method-icon { background: #151515; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .method-icon.selected { border-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-glow); background: #1a2a20; }
-        .method-icon img { width: 100%; height: 26px; object-fit: contain; }
-        .method-icon span { font-size: 9px; display: block; margin-top: 3px; color: #ccc; }
+        /* Payment Icons Grid */
+        .method-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+        .method-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .method-card.active { border-color: var(--neon-green); background: rgba(0,255,136,0.1); box-shadow: 0 0 15px rgba(0,255,136,0.3); }
+        .method-card img { width: 100%; height: 28px; object-fit: contain; }
+        .method-card span { font-size: 9px; display: block; margin-top: 4px; color: #ccc; font-weight: bold; }
 
-        /* Liderlər & Mağaza */
-        .leader-item, .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
-        .badge-vip { background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+        /* Input Controls */
+        input, select { width: 100%; padding: 13px; background: rgba(0,0,0,0.6); border: 1px solid var(--border-color); color: #fff; border-radius: 10px; margin-top: 6px; margin-bottom: 12px; font-size: 13px; outline: none; }
+        input:focus, select:focus { border-color: var(--neon-green); box-shadow: 0 0 10px rgba(0,255,136,0.3); }
+
+        /* Leaderboard Items */
+        .leader-card { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .rank-badge { width: 26px; height: 26px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 10px; }
+        .rank-1 { background: var(--neon-gold); color: #000; box-shadow: 0 0 10px var(--neon-gold); }
+        .rank-2 { background: #c0c0c0; color: #000; }
+        .rank-3 { background: #cd7f32; color: #000; }
+
+        /* Shop Grid */
+        .shop-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .shop-box { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
+<div id="banOverlay">
+    <h1 style="color: red; font-size: 28px; margin-bottom: 10px;">🚫 HESABINIZ BANLANIB!</h1>
+    <p style="color: #aaa; font-size: 14px;">Qaydaları pozduğunuz üçün hesabınız inzibatçı tərəfindən dondurulub.</p>
+</div>
+
 <div class="container">
-    <!-- Header: Sol tərəf ad, sağ tərəf balans -->
     <div class="header">
-        <div class="brand-title">💎 TELEGRAM EARN</div>
+        <div class="brand-title">⚡ TELEGRAM EARN</div>
         <div class="balance-box">
             <div>Balans</div>
             <span><span id="userBalance">0.00000</span> AZN</span>
@@ -86,37 +98,36 @@
     <!-- REKLAM BÖLMƏSİ -->
     <div id="adsSection" class="section active">
         <div class="card">
-            <h3>Günlük Əsas Reklamlar</h3>
-            <p style="font-size: 12px; color: #888; margin-bottom: 12px;">İzlənilən: <span id="watchedAds">0</span> / 50 (Hər biri: 0.00010 AZN)</p>
-            <button class="btn" id="watchAdBtn" onclick="watchAd(1)">Reklama Bax və Qazan</button>
+            <h3>📺 Günlük Əsas Reklamlar</h3>
+            <p style="font-size: 12px; color: #aaa; margin-bottom: 12px;">Baxılan: <b style="color:#fff" id="watchedAds">0</b> / 50 (Qazanc: 0.00010 AZN)</p>
+            <button class="btn" onclick="watchAd(1)">Reklama Bax və Qazan</button>
         </div>
         <div class="card" style="position: relative;">
-            <div id="lockedAdOverlay" style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; flex-direction:column; justify-content:center; align-items:center; border-radius:14px; z-index:2; text-align:center; padding: 15px;">
-                <p style="margin-bottom: 10px; font-weight: bold; font-size: 13px;">🔒 Açmaq üçün 2 AZN ödə</p>
-                <button class="btn" style="width: auto; padding: 8px 16px; margin:0;" onclick="unlockSecondAds()">Kilidi Aç</button>
+            <div id="lockedAdOverlay" style="position: absolute; inset:0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; flex-direction:column; justify-content:center; align-items:center; border-radius:16px; z-index:2; padding:15px; text-align:center;">
+                <p style="margin-bottom: 10px; font-weight: bold; font-size: 14px;">🔒 Açmaq üçün 2 AZN ödənin</p>
+                <button class="btn" style="width: auto; padding: 8px 18px;" onclick="unlockSecondAds()">Kilidi Aç</button>
             </div>
-            <h3>İkinci 50 Reklam Paketi</h3>
-            <p style="font-size: 12px; color: #888; margin-bottom: 12px;">İzlənilən: <span id="watchedAds2">0</span> / 50</p>
-            <button class="btn" id="watchAd2Btn" onclick="watchAd(2)">2-ci Paketi İzlə</button>
+            <h3>🚀 İkinci 50 Reklam Paketi</h3>
+            <p style="font-size: 12px; color: #aaa; margin-bottom: 12px;">Baxılan: <b style="color:#fff" id="watchedAds2">0</b> / 50</p>
+            <button class="btn" onclick="watchAd(2)">2-ci Paketi İzlə</button>
         </div>
     </div>
 
-    <!-- TAPŞIRIQAR BÖLMƏSİ -->
+    <!-- TAPŞIRIQLAR -->
     <div id="tasksSection" class="section">
         <div class="card">
-            <h3>Sosial Tapşırıqlar</h3>
-            <p style="font-size: 12px; color: #888; margin-bottom: 12px;">Hər tapşırıq: 5 Coin</p>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:13px;">
-                <span>TikTok Hesabını İzlə</span>
-                <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="completeTask('tiktok')">Yerinə Yetir</button>
+            <h3>📋 Tapşırıqlar (+5 Coin)</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+                <span>🎵 TikTok Hesabını İzlə</span>
+                <button class="btn" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="completeTask()">Tamamla</button>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-size:13px;">
-                <span>Instagram Hesabını İzlə</span>
-                <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="completeTask('instagram')">Yerinə Yetir</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+                <span>📸 Instagram Hesabını İzlə</span>
+                <button class="btn" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="completeTask()">Tamamla</button>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
-                <span>Telegram Kanalına Abunə Ol</span>
-                <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="completeTask('telegram')">Yerinə Yetir</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+                <span>📢 Telegram Kanalına Abunə Ol</span>
+                <button class="btn" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="completeTask()">Tamamla</button>
             </div>
         </div>
     </div>
@@ -124,18 +135,25 @@
     <!-- ÇARX BÖLMƏSİ -->
     <div id="wheelSection" class="section">
         <div class="card">
-            <h3 style="text-align: center;">Bəxt Çarxı</h3>
-            <div style="text-align: center; margin: 5px 0; font-size: 12px; color: var(--neon-green);" id="coinArea">Coin: <span id="userCoins">0</span></div>
-            <div class="wheel-container">
-                <div class="wheel-pointer"></div>
-                <div class="wheel" id="rouletteWheel">
-                    <div style="position: absolute; font-size:10px; font-weight:bold; color:#00ff88; transform: rotate(0deg) translate(55px) rotate(0deg);">💣 Bomba</div>
-                    <div style="position: absolute; font-size:10px; font-weight:bold; color:#00e1ff; transform: rotate(72deg) translate(55px) rotate(-72deg);">2 AZN</div>
-                    <div style="position: absolute; font-size:10px; font-weight:bold; color:#ffcc00; transform: rotate(144deg) translate(55px) rotate(-144deg);">iPhone 17</div>
-                    <div style="position: absolute; font-size:10px; font-weight:bold; color:#ff4444; transform: rotate(216deg) translate(55px) rotate(-216deg);">30 AZN</div>
-                    <div style="position: absolute; font-size:10px; font-weight:bold; color:#ff00ff; transform: rotate(288deg) translate(55px) rotate(-288deg);">5 AZN</div>
+            <h3 style="justify-content: center;">🎰 Bəxt Çarxı</h3>
+            <p style="text-align: center; font-size: 13px; color: var(--neon-green); margin-top: 4px;">Mövcud Coin: <b id="userCoins">0</b></p>
+            
+            <div class="wheel-wrapper">
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel" id="rouletteWheel">
+                        <div class="wheel-label" style="transform: rotate(22.5deg);">💣 Bomba</div>
+                        <div class="wheel-label" style="transform: rotate(67.5deg); color:var(--neon-blue);">2 AZN</div>
+                        <div class="wheel-label" style="transform: rotate(112.5deg);">💣 Bomba</div>
+                        <div class="wheel-label" style="transform: rotate(157.5deg); color:var(--neon-gold);">iPhone 17</div>
+                        <div class="wheel-label" style="transform: rotate(202.5deg);">💣 Bomba</div>
+                        <div class="wheel-label" style="transform: rotate(247.5deg); color:var(--neon-pink);">30 AZN</div>
+                        <div class="wheel-label" style="transform: rotate(292.5deg);">💣 Bomba</div>
+                        <div class="wheel-label" style="transform: rotate(337.5deg); color:var(--neon-green);">5 AZN</div>
+                    </div>
                 </div>
             </div>
+            
             <button class="btn" onclick="spinWheel()">Çarxı Fırlat (10 Coin)</button>
         </div>
     </div>
@@ -143,9 +161,30 @@
     <!-- LİDERLƏR CƏDVƏLİ -->
     <div id="leaderboardSection" class="section">
         <div class="card">
-            <h3>Top 10 Liderlər</h3>
-            <div id="leaderboardList" style="margin-top: 10px;">
-                <!-- Dinamik -->
+            <h3>🏆 Top 10 Liderlər</h3>
+            <div id="leaderboardList" style="margin-top: 12px;"></div>
+        </div>
+    </div>
+
+    <!-- MAĞAZA BÖLMƏSİ -->
+    <div id="shopSection" class="section">
+        <div class="card">
+            <h3>🛍️ Premium Mağaza</h3>
+            <div class="shop-grid" style="margin-top: 10px;">
+                <div class="shop-box">
+                    <div>
+                        <div style="font-weight: bold; font-size: 13px;">🔥 Neon Qırmızı Çərçivə</div>
+                        <div style="font-size: 11px; color: #888;">Profilə xüsusi alov efekti verər</div>
+                    </div>
+                    <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="buyItem(1.50)">1.50 AZN</button>
+                </div>
+                <div class="shop-box">
+                    <div>
+                        <div style="font-weight: bold; font-size: 13px;">⚡ Cyber Qızıl İşıqlandırma</div>
+                        <div style="font-size: 11px; color: #888;">Liderlər lövhəsində ad parıldayar</div>
+                    </div>
+                    <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="buyItem(3.00)">3.00 AZN</button>
+                </div>
             </div>
         </div>
     </div>
@@ -153,106 +192,71 @@
     <!-- PROFİL BÖLMƏSİ -->
     <div id="profileSection" class="section">
         <div class="card">
-            <h3>Profil Məlumatı</h3>
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
-                <span id="profileName" style="font-weight: bold; font-size: 15px;">-</span>
-                <span id="vipBadge" class="badge-vip" style="display: none;">VIP AKTİVDİR</span>
-            </div>
-            <button class="btn" onclick="buyVip()" style="background: linear-gradient(45deg, #ffd700, #ff8c00); color:#000; margin-top:15px;">👑 VIP Statusu Aktivləşdir (5 AZN)</button>
+            <h3>👤 İstifadəçi Profilı</h3>
+            <p style="margin-top: 10px; font-size: 14px;">Ad: <b id="profileName">-</b></p>
+            <div id="vipBadge" style="display:none; margin-top: 6px; font-size: 12px; color: var(--neon-gold); font-weight: bold;">👑 VIP ÜZV</div>
+            <button class="btn" onclick="buyVip()" style="background: linear-gradient(90deg, #ffd700, #ff8c00); color:#000;">👑 VIP Status Al (5 AZN)</button>
         </div>
         <div class="card">
-            <h3>Referal Sistemi</h3>
-            <p style="font-size: 12px; color: #888; margin-top: 4px;">Dostlarını dəvət et, hər referala görə 0.00020 AZN qazan!</p>
-            <input type="text" id="refLink" readonly style="font-size: 11px; margin-top: 8px;">
+            <h3>🔗 Referal Sistemi</h3>
+            <p style="font-size: 12px; color: #aaa; margin-top: 4px;">Dostunu dəvət et: <b>+0.00020 AZN</b> qazan!</p>
+            <input type="text" id="refLink" readonly style="font-size: 11px;">
             <button class="btn" onclick="copyRefLink()">Linki Kopyala</button>
-        </div>
-    </div>
-
-    <!-- MAĞAZA BÖLMƏSİ -->
-    <div id="shopSection" class="section">
-        <div class="card">
-            <h3>Mağaza & Çərçivələr</h3>
-            <p style="font-size: 12px; color: #888; margin-bottom: 12px;">Profilin üçün xüsusi bəzəklər</p>
-            <div class="shop-item">
-                <span>🔥 Neon Qırmızı Çərçivə</span>
-                <button class="btn" style="width: auto; margin:0; padding:5px 10px; font-size:11px;" onclick="buyItem(1.50)">1.50 AZN</button>
-            </div>
-            <div class="shop-item">
-                <span>⚡ Cyber Qızıl Ad Efekti</span>
-                <button class="btn" style="width: auto; margin:0; padding:5px 10px; font-size:11px;" onclick="buyItem(3.00)">3.00 AZN</button>
-            </div>
-            <div class="shop-item">
-                <span>💎 Brilyant Status Nişanı</span>
-                <button class="btn" style="width: auto; margin:0; padding:5px 10px; font-size:11px;" onclick="buyItem(4.50)">4.50 AZN</button>
-            </div>
         </div>
     </div>
 
     <!-- ÇIXARIŞ BÖLMƏSİ -->
     <div id="withdrawSection" class="section">
         <div class="card">
-            <h3>Pul Çıxarışı (Min: 7 AZN)</h3>
-            <label style="font-size: 12px; color: #888;">Ödəniş Metodunu Seçin:</label>
-            
-            <!-- Şəkillərə uyğun ödəniş metodları seçimi -->
-            <div class="method-selector">
-                <div class="method-icon selected" onclick="setMethod('card', this)">
+            <h3>💳 Pul Çıxarışı (Min: 7 AZN)</h3>
+            <div class="method-grid">
+                <div class="method-card active" onclick="setMethod('card', this)">
                     <img src="photo_2026-10-16_15-55-40.jpg" alt="Kart">
                     <span>Kart</span>
                 </div>
-                <div class="method-icon" onclick="setMethod('m10', this)">
+                <div class="method-card" onclick="setMethod('m10', this)">
                     <img src="photo_2026-10-16_15-55-09.jpg" alt="M10">
                     <span>M10</span>
                 </div>
-                <div class="method-icon" onclick="setMethod('azercell', this)">
+                <div class="method-card" onclick="setMethod('azercell', this)">
                     <img src="photo_2026-10-16_15-51-49.jpg" alt="Azercell">
                     <span>Azercell</span>
                 </div>
-                <div class="method-icon" onclick="setMethod('bakcell', this)">
+                <div class="method-card" onclick="setMethod('bakcell', this)">
                     <img src="photo_2026-10-16_15-53-34.jpg" alt="Bakcell">
                     <span>Bakcell</span>
                 </div>
-                <div class="method-icon" onclick="setMethod('nar', this)">
+                <div class="method-card" onclick="setMethod('nar', this)">
                     <img src="photo_2026-10-16_15-54-21.jpg" alt="Nar">
                     <span>Nar</span>
                 </div>
             </div>
 
-            <!-- Bank Kartı sahəsi -->
             <div id="cardFields">
-                <label style="font-size: 12px;">Bankın Adı:</label>
-                <input type="text" id="bankName" placeholder="Məsələn: Leobank, Birbank">
-                <label style="font-size: 12px;">16 Rəqəmli Kart Nömrəsi:</label>
-                <input type="text" id="cardNumber" maxlength="16" placeholder="xxxx xxxx xxxx xxxx">
+                <input type="text" id="bankName" placeholder="Bankın Adı (Məs: Leobank, Birbank)">
+                <input type="text" id="cardNumber" maxlength="16" placeholder="16 Rəqəmli Kart Nömrəsi">
             </div>
 
-            <!-- M10 sahəsi -->
-            <div id="m10Fields" style="display: none;">
-                <label style="font-size: 12px;">Operator Kodu:</label>
+            <div id="m10Fields" style="display:none;">
                 <select id="m10Prefix">
                     <option value="050">050</option><option value="051">051</option>
                     <option value="055">055</option><option value="010">010</option>
                     <option value="099">099</option><option value="077">077</option><option value="070">070</option>
                 </select>
-                <label style="font-size: 12px;">Nömrə (7 rəqəm): xxx-xx-xx</label>
-                <input type="text" id="m10Number" maxlength="7" placeholder="1234567">
+                <input type="text" id="m10Number" maxlength="7" placeholder="Nömrə (7 rəqəm: xxx-xx-xx)">
             </div>
 
-            <!-- Mobil Operator sahələri (Azercell / Bakcell / Nar) -->
-            <div id="mobileFields" style="display: none;">
-                <label style="font-size: 12px;">Operator Kodu:</label>
+            <div id="mobileFields" style="display:none;">
                 <select id="mobilePrefix"></select>
-                <label style="font-size: 12px;">Nömrə (7 rəqəm): xxx-xx-xx</label>
-                <input type="text" id="mobileNumber" maxlength="7" placeholder="1234567">
+                <input type="text" id="mobileNumber" maxlength="7" placeholder="Nömrə (7 rəqəm: xxx-xx-xx)">
             </div>
 
-            <label style="font-size: 12px;">Məbləğ (AZN):</label>
-            <input type="number" id="withdrawAmount" placeholder="Min. 7 AZN">
+            <input type="number" id="withdrawAmount" placeholder="Məbləğ (Min. 7 AZN)">
             <button class="btn" onclick="requestWithdraw()">Çıxarış Tələbi Göndər</button>
         </div>
 
         <div class="card">
-            <h3>Canlı Çıxarış İzləmə</h3>
+            <h3>⏳ Canlı Çıxarış Tarixçəsi</h3>
             <div id="withdrawHistory" style="font-size: 12px; margin-top: 8px;"></div>
         </div>
     </div>
@@ -261,32 +265,25 @@
 <!-- Bottom Navigation Bar -->
 <div class="nav-bar">
     <button class="nav-item active" onclick="switchTab('adsSection', this)">
-        <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15h3v-2H8v2zm0-4h8V9H8v2z"/></svg>
-        Reklam
+        <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15h3v-2H8v2zm0-4h8V9H8v2z"/></svg> Reklam
     </button>
     <button class="nav-item" onclick="switchTab('tasksSection', this)">
-        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-        Tapşırıq
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg> Tapşırıq
     </button>
     <button class="nav-item" onclick="switchTab('wheelSection', this)">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-        Çarx
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg> Çarx
     </button>
     <button class="nav-item" onclick="switchTab('leaderboardSection', this)">
-        <svg viewBox="0 0 24 24"><path d="M16 11V3H8v8H2v10h20V11h-6zm-6-6h4v14h-4V5zm-6 8h4v6H4v-6zm16 6h-4v-4h4v4z"/></svg>
-        Liderlər
+        <svg viewBox="0 0 24 24"><path d="M16 11V3H8v8H2v10h20V11h-6zm-6-6h4v14h-4V5zm-6 8h4v6H4v-6zm16 6h-4v-4h4v4z"/></svg> Liderlər
     </button>
     <button class="nav-item" onclick="switchTab('shopSection', this)">
-        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.60 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-        Mağaza
+        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.60 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg> Mağaza
     </button>
     <button class="nav-item" onclick="switchTab('profileSection', this)">
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        Profil
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> Profil
     </button>
     <button class="nav-item" onclick="switchTab('withdrawSection', this)">
-        <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-        Çıxarış
+        <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg> Çıxarış
     </button>
 </div>
 
@@ -297,47 +294,47 @@
 
     let tg = window.Telegram.WebApp;
     tg.expand();
-    let user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : { id: 99999, first_name: "Test User" };
+    let user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : { id: 88888, first_name: "İstifadəçi" };
 
-    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, ads2Unlocked: false };
+    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false };
     let currentWithdrawMethod = 'card';
 
     const userRef = db.ref('users/' + user.id);
+    
+    // Ilk andan datanı düzgün yükləmək (0 səhvi qarşısını almaq üçün)
     userRef.on('value', (snapshot) => {
         if (snapshot.exists()) {
             userData = snapshot.val();
+            if(userData.isBanned) {
+                document.getElementById('banOverlay').style.display = 'flex';
+                return;
+            }
         } else {
-            // Referal yoxlaması
             let urlParams = new URLSearchParams(window.location.search);
             let refId = urlParams.get('start');
             if(refId && refId !== String(user.id)) {
                 db.ref('users/' + refId).once('value', (refSnap) => {
                     if(refSnap.exists()) {
                         let refData = refSnap.val();
-                        refData.balance = (refData.balance || 0) + 0.00020;
-                        db.ref('users/' + refId).update({ balance: refData.balance });
+                        db.ref('users/' + refId).update({ balance: (refData.balance || 0) + 0.00020 });
                     }
                 });
             }
-            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, ads2Unlocked: false };
+            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false };
             userRef.set(userData);
         }
         updateUI();
     });
 
     function updateUI() {
-        document.getElementById('userBalance').innerText = Number(userData.balance).toFixed(5);
+        document.getElementById('userBalance').innerText = Number(userData.balance || 0).toFixed(5);
         document.getElementById('userCoins').innerText = userData.coins || 0;
         document.getElementById('watchedAds').innerText = userData.watchedAds || 0;
         document.getElementById('watchedAds2').innerText = userData.watchedAds2 || 0;
         document.getElementById('profileName').innerText = user.first_name;
         
-        if (userData.isVip) {
-            document.getElementById('vipBadge').style.display = 'block';
-        }
-        if (userData.ads2Unlocked) {
-            document.getElementById('lockedAdOverlay').style.display = 'none';
-        }
+        if (userData.isVip) document.getElementById('vipBadge').style.display = 'block';
+        if (userData.ads2Unlocked) document.getElementById('lockedAdOverlay').style.display = 'none';
         document.getElementById('refLink').value = `https://t.me/YourBotName?start=${user.id}`;
     }
 
@@ -348,24 +345,24 @@
         btnElement.classList.add('active');
     }
 
-    // Reklam İzləmə (Hər reklama 0.00010 AZN)
     function watchAd(packageNum) {
         if(packageNum === 1 && userData.watchedAds >= 50) { alert("Günlük 50 reklam limitiniz doldu!"); return; }
         if(packageNum === 2 && userData.watchedAds2 >= 50) { alert("İkinci paket limitiniz doldu!"); return; }
 
         if (typeof show_12046628 === 'function') {
             show_12046628().then(() => {
-                if(packageNum === 1) { userData.watchedAds++; } else { userData.watchedAds2++; }
-                userData.balance += 0.00010;
+                if(packageNum === 1) userData.watchedAds = (userData.watchedAds || 0) + 1;
+                else userData.watchedAds2 = (userData.watchedAds2 || 0) + 1;
+                userData.balance = (userData.balance || 0) + 0.00010;
                 userRef.update(userData);
-                alert('Reklama baxıldı! +0.00010 AZN əlavə olundu.');
-            }).catch(e => { alert('Reklam oynadıla bilmədi.'); });
+                alert('Reklama baxıldı! +0.00010 AZN balansa əlavə edildi.');
+            }).catch(e => { alert('Reklam açılmadı.'); });
         } else {
-            // Test rejimi
-            if(packageNum === 1) userData.watchedAds++; else userData.watchedAds2++;
-            userData.balance += 0.00010;
+            if(packageNum === 1) userData.watchedAds = (userData.watchedAds || 0) + 1;
+            else userData.watchedAds2 = (userData.watchedAds2 || 0) + 1;
+            userData.balance = (userData.balance || 0) + 0.00010;
             userRef.update(userData);
-            alert('Test rejimi: +0.00010 AZN əlavə olundu.');
+            alert('Test rejimi: +0.00010 AZN balansa əlavə edildi.');
         }
     }
 
@@ -375,82 +372,42 @@
             userData.ads2Unlocked = true;
             userRef.update(userData);
             alert("İkinci reklam paketi açıldı!");
-        } else {
-            alert("Balansınızda 2 AZN yoxdur.");
-        }
+        } else { alert("Balansınızda 2 AZN yoxdur."); }
     }
 
-    function completeTask(type) {
+    function completeTask() {
         userData.coins = (userData.coins || 0) + 5;
         userRef.update(userData);
         alert("Tapşırıq tamamlandı! +5 Coin.");
     }
 
-    function buyVip() {
-        if(userData.balance >= 5) {
-            userData.balance -= 5;
-            userData.isVip = true;
-            userRef.update(userData);
-            alert("VIP status aktivləşdi!");
-        } else {
-            alert("Balansınızda 5 AZN yoxdur.");
-        }
-    }
-
-    function buyItem(price) {
-        if(userData.balance >= price) {
-            userData.balance -= price;
-            userRef.update(userData);
-            alert("Uğurla satın alındı!");
-        } else {
-            alert("Balansınız kifayət etmir.");
-        }
-    }
-
-    function copyRefLink() {
-        let copyText = document.getElementById("refLink");
-        copyText.select();
-        navigator.clipboard.writeText(copyText.value);
-        alert("Referal link kopyalandı!");
-    }
-
     function spinWheel() {
-        if((userData.coins || 0) < 10) { alert("10 coin lazımdır!"); return; }
+        if((userData.coins || 0) < 10) { alert("Çarxı fırlatmaq üçün 10 coin lazımdır!"); return; }
         userData.coins -= 10;
-        let prizes = ["Bomba", "Bomba", "Bomba", "Bomba", "2 AZN"];
-        let prize = prizes[Math.floor(Math.random() * prizes.length)];
         
-        if(prize.includes("AZN")) {
-            userData.balance += 2;
-            alert("Təbriklər! 2 AZN qazandınız!");
-        } else {
-            alert("Təəssüf, bomba çıxdı!");
-        }
-        userRef.update(userData);
+        let randDegree = Math.floor(Math.random() * 360) + 1440; // En az 4 tam devir
+        let wheel = document.getElementById('rouletteWheel');
+        wheel.style.transform = `rotate(${randDegree}deg)`;
+        
+        setTimeout(() => {
+            alert("Təəssüf, Bomba çıxdı!");
+            userRef.update(userData);
+        }, 4000);
     }
 
-    // Çıxarış metodları idarəetməsi
-    function setMethod(method, element) {
+    function setMethod(method, el) {
         currentWithdrawMethod = method;
-        document.querySelectorAll('.method-icon').forEach(el => el.classList.remove('selected'));
-        element.classList.add('selected');
+        document.querySelectorAll('.method-card').forEach(m => m.classList.remove('active'));
+        el.classList.add('active');
 
         document.getElementById('cardFields').style.display = method === 'card' ? 'block' : 'none';
         document.getElementById('m10Fields').style.display = method === 'm10' ? 'block' : 'none';
-        document.getElementById('mobileFields').style.display = (['azercell', 'bakcell', 'nar'].includes(method)) ? 'block' : 'none';
+        document.getElementById('mobileFields').style.display = (['azercell','bakcell','nar'].includes(method)) ? 'block' : 'none';
 
         let prefixSelect = document.getElementById('mobilePrefix');
         prefixSelect.innerHTML = '';
-        let codes = [];
-        if(method === 'azercell') codes = ['050', '051', '010'];
-        else if(method === 'bakcell') codes = ['055', '099'];
-        else if(method === 'nar') codes = ['070', '077'];
-        
-        codes.forEach(c => {
-            let opt = document.createElement('option');
-            opt.value = c; opt.innerText = c;
-            prefixSelect.appendChild(opt);
-        });
+        let codes = method === 'azercell' ? ['050','051','010'] : (method === 'bakcell' ? ['055','099'] : ['070','077']);
+        codes.forEach(c => prefixSelect.innerHTML += `<option value="${c}">${c}</option>`);
     }
 
     function requestWithdraw() {
@@ -459,50 +416,67 @@
         if(userData.balance < amount) { alert("Balansınızda kifayət qədər vəsait yoxdur!"); return; }
 
         if(currentWithdrawMethod === 'card') {
-            let bank = document.getElementById('bankName').value;
-            let card = document.getElementById('cardNumber').value;
-            if(!bank || card.length !== 16) { alert("Bank adını və 16 rəqəmli kart nömrəsini düzgün daxil edin!"); return; }
+            if(!document.getElementById('bankName').value || document.getElementById('cardNumber').value.length !== 16) {
+                alert("Bank adı və 16 rəqəmli kart nömrəsini tam yazın!"); return;
+            }
         } else if(currentWithdrawMethod === 'm10') {
-            let m10Num = document.getElementById('m10Number').value;
-            if(m10Num.length !== 7) { alert("M10 nömrəsi 7 rəqətdən ibarət olmalıdır!"); return; }
+            if(document.getElementById('m10Number').value.length !== 7) { alert("7 rəqəmli nömrəni yazın!"); return; }
         } else {
-            let mobNum = document.getElementById('mobileNumber').value;
-            if(mobNum.length !== 7) { alert("Mobil nömrə 7 rəqətdən ibarət olmalıdır!"); return; }
+            if(document.getElementById('mobileNumber').value.length !== 7) { alert("7 rəqəmli nömrəni yazın!"); return; }
         }
 
         userData.balance -= amount;
         userRef.update(userData);
 
         db.ref('withdraws').push({
-            userId: user.id,
-            userName: user.first_name,
-            method: currentWithdrawMethod,
-            amount: amount,
-            status: "Gözləmədədir",
-            date: new Date().toLocaleString()
+            userId: user.id, userName: user.first_name, method: currentWithdrawMethod, amount: amount, status: "Gözləmədədir", date: new Date().toLocaleString()
         });
-        alert("Çıxarış tələbiniz qəbul edildi və canlı izləməyə əlavə olundu.");
+        alert("Çıxarış tələbi göndərildi.");
     }
 
-    // Tarixçə və Liderlər
-    db.ref('withdraws').orderByChild('userId').equalTo(user.id).on('value', snapshot => {
-        let html = '';
-        snapshot.forEach(child => {
-            let w = child.val();
-            html += `<div style="padding:6px 0; border-bottom:1px solid #1a1a1a; display:flex; justify-content:space-between;"><span>${w.method.toUpperCase()} (${w.amount} AZN)</span> <b style="color:var(--neon-blue);">${w.status}</b></div>`;
-        });
-        document.getElementById('withdrawHistory').innerHTML = html || 'Tələb yoxdur.';
-    });
+    function buyVip() {
+        if(userData.balance >= 5) { userData.balance -= 5; userData.isVip = true; userRef.update(userData); alert("VIP status aktivləşdi!"); }
+        else alert("Balansınızda 5 AZN yoxdur.");
+    }
 
+    function buyItem(price) {
+        if(userData.balance >= price) { userData.balance -= price; userRef.update(userData); alert("Əşya uğurla alındı!"); }
+        else alert("Balansınız çatmır.");
+    }
+
+    function copyRefLink() {
+        navigator.clipboard.writeText(document.getElementById("refLink").value);
+        alert("Referal link kopyalandı!");
+    }
+
+    // Top 10 Liderlər Cədvəli
     db.ref('users').orderByChild('balance').limitToLast(10).on('value', snapshot => {
-        let list = [];
-        snapshot.forEach(child => { list.push(child.val()); });
-        list.reverse();
+        let list = []; snapshot.forEach(c => list.push(c.val())); list.reverse();
         let html = '';
-        list.forEach((u, index) => {
-            html += `<div class="leader-item"><span>#${index+1} ${u.name || 'İstifadəçi'}</span><span style="color:var(--neon-green);">${Number(u.balance || 0).toFixed(5)} AZN</span></div>`;
+        list.forEach((u, i) => {
+            let badgeClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
+            html += `<div class="leader-card">
+                <div style="display:flex; align-items:center;">
+                    <div class="rank-badge ${badgeClass}">${i+1}</div>
+                    <span style="font-weight:bold; font-size:13px;">${u.name || 'İstifadəçi'}</span>
+                </div>
+                <span style="color:var(--neon-green); font-weight:bold; font-size:13px;">${Number(u.balance || 0).toFixed(5)} AZN</span>
+            </div>`;
         });
         document.getElementById('leaderboardList').innerHTML = html;
+    });
+
+    // Çıxarışlar
+    db.ref('withdraws').orderByChild('userId').equalTo(user.id).on('value', snapshot => {
+        let html = '';
+        snapshot.forEach(c => {
+            let w = c.val();
+            let color = w.status === 'Təsdiqləndi' ? 'var(--neon-green)' : (w.status === 'Ləğv edildi' ? 'red' : 'var(--neon-blue)');
+            html += `<div style="padding:6px 0; border-bottom:1px solid #222; display:flex; justify-content:space-between;">
+                <span>${w.method.toUpperCase()} (${w.amount} AZN)</span> <b style="color:${color};">${w.status}</b>
+            </div>`;
+        });
+        document.getElementById('withdrawHistory').innerHTML = html || 'Tələb yoxdur.';
     });
 </script>
 </body>
