@@ -40,7 +40,7 @@
 
         .btn { width: 100%; background: #ffffff; color: #000000; border: none; padding: 13px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: all 0.25s ease; margin-top: 10px; font-size: 14px; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
         .btn:active { transform: scale(0.98); background: #e0e0e0; }
-        .btn:disabled { background: #333 !important; color: #777 !important; cursor: not-allowed; box-shadow: none; }
+        .btn:disabled { background: #222 !important; color: #666 !important; cursor: not-allowed; box-shadow: none; }
 
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(15px); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 100; max-width: 480px; margin: 0 auto; }
         .nav-item { background: none; border: none; color: #777; font-size: 10px; cursor: pointer; text-align: center; transition: 0.2s; font-weight: 600; }
@@ -53,7 +53,7 @@
         .avatar-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #111; }
         .vip-img-icon { width: 22px; height: 22px; vertical-align: middle; margin-left: 6px; object-fit: contain; }
 
-        /* 8 ƏDƏD HƏDİYYƏ QUTUSU QƏFƏSİ (GRID) */
+        /* HƏDİYYƏ QUTULARI */
         .boxes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
         .gift-box { 
             background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,255,136,0.1)); 
@@ -61,18 +61,16 @@
             border-radius: 14px; 
             aspect-ratio: 1; 
             display: flex; 
-            flex-direction: column; 
             align-items: center; 
             justify-content: center; 
             font-size: 28px; 
             cursor: pointer; 
             transition: all 0.3s ease; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .gift-box:hover { transform: translateY(-3px) scale(1.05); border-color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
         .gift-box.opened { background: rgba(0,0,0,0.6); border-color: #444; opacity: 0.6; }
 
-        /* Liderlik Tablosu Banner Kartları */
+        /* Liderlik Tablosu */
         .leader-banner-container { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .leader-banner-card { 
             position: relative; width: 100%; min-height: 75px; 
@@ -133,31 +131,33 @@
             </div>
             <h3>İkinci 50 Reklam Paketi</h3>
             <p style="font-size: 12px; color: #aaa; margin-bottom: 8px;">Baxılan: <b style="color:#fff" id="watchedAds2">0</b> / 50 (Qazanc: 0.00020 AZN)</p>
-            <p style="font-size: 11px; color: #777; margin-bottom: 10px;">Məlumat: 2-ci paket reklamları açdıqdan sonra hər izlədiyiniz reklama görə hesabınıza 0.00020 AZN əlavə olunacaq.</p>
             <button class="btn" onclick="watchAd(2)">2-ci Paketi İzlə</button>
         </div>
     </div>
 
-    <!-- TAPŞIRIQLAR -->
+    <!-- TAPŞIRIQLAR BÖLMƏSİ (DÜZƏLDİLDİ) -->
     <div id="tasksSection" class="section">
         <div class="card">
             <h3>Tapşırıqlar (+5 Coin)</h3>
+            
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
                 <span>TikTok Hesabını İzlə</span>
-                <button class="btn" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="completeTask()">Tamamla</button>
+                <button class="btn" id="taskTikTok" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('tiktok', 'https://tiktok.com/@youraccount', this)">Yerinə Yetir</button>
             </div>
+            
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
                 <span>Instagram Hesabını İzlə</span>
-                <button class="btn" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="completeTask()">Tamamla</button>
+                <button class="btn" id="taskInstagram" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('instagram', 'https://instagram.com/youraccount', this)">Yerinə Yetir</button>
             </div>
+
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
                 <span>Telegram Kanalına Abunə Ol</span>
-                <button class="btn" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="completeTask()">Tamamla</button>
+                <button class="btn" id="taskTelegram" style="width:auto; margin:0; padding:8px 14px; font-size:12px;" onclick="doTask('telegram', 'https://t.me/yourchannel', this)">Yerinə Yetir</button>
             </div>
         </div>
     </div>
 
-    <!-- HƏDİYYƏ QUTULARI BÖLMƏSİ (ÇARX YERİNƏ) -->
+    <!-- HƏDİYYƏ QUTULARI BÖLMƏSİ -->
     <div id="wheelSection" class="section">
         <div class="card">
             <h3 style="justify-content: center; text-align: center;">🎁 Hədiyyə Qutuları</h3>
@@ -175,15 +175,8 @@
             </div>
 
             <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-top: 15px;">
-                <h4 style="font-size: 13px; color: var(--neon-gold); margin-bottom: 8px;">Qutudan nə çıxa bilər?</h4>
-                <ul style="font-size: 11px; color: #ccc; margin-left: 15px; line-height: 1.6;">
-                    <li><b>Bomba:</b> Şans 80% (Mükafat verilmədən sıfırlanır)</li>
-                    <li><b>1 AZN:</b> Şans 33%</li>
-                    <li><b>2 AZN:</b> Şans 30%</li>
-                    <li><b>5 AZN:</b> Şans 25%</li>
-                    <li><b>30 AZN:</b> Şans 0%</li>
-                    <li><b>iPhone 17 Pro Max:</b> Şans 0%</li>
-                </ul>
+                <h4 style="font-size: 13px; color: var(--neon-gold); margin-bottom: 6px;">Qutudan nə çıxa bilər?</h4>
+                <p style="font-size: 11px; color: #aaa; line-height: 1.5;">Qutulardan təsadüfi olaraq Pul Mükafatları (1 AZN, 2 AZN, 5 AZN, 30 AZN), iPhone 17 Pro Max və ya Bomba çıxa bilər.</p>
             </div>
         </div>
     </div>
@@ -212,7 +205,6 @@
                 </div>
             </div>
 
-            <!-- Qalereya İlə Şəkil Yükləmə -->
             <input type="file" id="galleryInput" accept="image/*" style="display: none;" onchange="uploadAvatarFromGallery(this)">
             <button class="btn" style="margin-top:0; padding:10px; font-size:12px;" onclick="document.getElementById('galleryInput').click();">🖼️ Qalereyadan Şəkil Seç</button>
         </div>
@@ -321,7 +313,7 @@
     tg.expand();
     let user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : { id: 10001, first_name: "İstifadəçi" };
 
-    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '' };
+    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {} };
     let currentWithdrawMethod = 'card';
 
     // Səs Sintezatoru
@@ -361,7 +353,6 @@
                 return;
             }
         } else {
-            // Referal Yoxlaması
             let urlParams = new URLSearchParams(window.location.search);
             let refId = urlParams.get('start');
             if(refId && refId !== String(user.id)) {
@@ -372,7 +363,7 @@
                     }
                 });
             }
-            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '' };
+            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {} };
             userRef.set(userData);
         }
         updateUI();
@@ -396,11 +387,36 @@
             document.getElementById('buyVipBtn').disabled = true;
         }
 
+        // Tapşırıqların Yoxlanması
+        if(userData.tasks && userData.tasks.tiktok) {
+            let b = document.getElementById('taskTikTok'); b.innerText = "Tamamlandı"; b.disabled = true;
+        }
+        if(userData.tasks && userData.tasks.instagram) {
+            let b = document.getElementById('taskInstagram'); b.innerText = "Tamamlandı"; b.disabled = true;
+        }
+        if(userData.tasks && userData.tasks.telegram) {
+            let b = document.getElementById('taskTelegram'); b.innerText = "Tamamlandı"; b.disabled = true;
+        }
+
         if (userData.ads2Unlocked) document.getElementById('lockedAdOverlay').style.display = 'none';
         document.getElementById('refLink').value = `https://t.me/YourBotName?start=${user.id}`;
     }
 
-    // Qalereyadan Şəkil Yükləmə (Base64)
+    // Tapşırıq İcra Mexanizması
+    function doTask(taskId, url, btnElement) {
+        if(userData.tasks && userData.tasks[taskId]) {
+            alert("Bu tapşırığı artıq icra etmisiniz!"); return;
+        }
+        window.open(url, '_blank');
+        if(!userData.tasks) userData.tasks = {};
+        userData.tasks[taskId] = true;
+        userData.coins = (userData.coins || 0) + 5;
+        userRef.update(userData);
+        btnElement.innerText = "Tamamlandı";
+        btnElement.disabled = true;
+        alert("Tapşırıq tamamlandı! +5 Coin balansa əlavə edildi.");
+    }
+
     function uploadAvatarFromGallery(input) {
         if (input.files && input.files[0]) {
             let reader = new FileReader();
@@ -454,34 +470,27 @@
         } else { alert("Balansınızda 3 AZN yoxdur."); }
     }
 
-    function completeTask() {
-        userData.coins = (userData.coins || 0) + 5;
-        userRef.update(userData);
-        alert("Tapşırıq tamamlandı! +5 Coin.");
-    }
-
-    // 8 HƏDİYYƏ QUTUSUNU AÇMAQ (DƏQİQ FAİZLƏR İLƏ)
+    // 8 HƏDİYYƏ QUTUSUNU AÇMAQ
     function openGiftBox(element) {
         if((userData.coins || 0) < 10) { alert("Qutunu açmaq üçün 10 Coin lazımdır!"); return; }
         userData.coins -= 10;
 
-        // Ehtimallar:
-        // Bomba: 80%
-        // 1 AZN: 33% | 2 AZN: 30% | 5 AZN: 25% | 30 AZN: 0% | iPhone 17: 0%
-        let roll = Math.random() * 168; // 80 + 33 + 30 + 25 = 168
+        // Xüsusi Tənzimlənmiş Ehtimallar:
+        // Bomba, 1 AZN və 2 AZN şansı yüksəkdir, digər yüksək məbləğlər çox gec çıxır.
+        let roll = Math.random() * 200; 
 
-        if(roll < 80) {
+        if(roll < 120) {
             playBombSound();
             element.innerText = "💣";
             element.classList.add('opened');
             alert("💣 Təəssüf, Bomba çıxdı!");
-        } else if(roll < 113) {
+        } else if(roll < 165) {
             playWinSound();
             element.innerText = "1₼";
             element.classList.add('opened');
             userData.balance += 1;
             alert("🎉 Təbriklər! 1 AZN qazandınız!");
-        } else if(roll < 143) {
+        } else if(roll < 195) {
             playWinSound();
             element.innerText = "2₼";
             element.classList.add('opened');
@@ -543,7 +552,7 @@
         alert("Referal link kopyalandı!");
     }
 
-    // LİDERLƏR TABLOSU (BÖYÜK BANNER KARTLARI)
+    // LİDERLƏR TABLOSU
     db.ref('users').orderByChild('balance').limitToLast(15).on('value', snapshot => {
         let list = []; snapshot.forEach(c => {
             let u = c.val();
