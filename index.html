@@ -7,17 +7,16 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <!-- Monetag SDK -->
     <script src='//libtl.com/sdk.js' data-zone='12046628' data-sdk='show_12046628'></script>
     <style>
         :root {
             --bg-color: #030305;
-            --panel-bg: rgba(18, 18, 26, 0.85);
+            --panel-bg: rgba(18, 18, 26, 0.9);
             --neon-green: #00ff88;
             --neon-blue: #00e1ff;
             --neon-pink: #ff007f;
             --neon-gold: #ffd700;
-            --border-color: rgba(0, 255, 136, 0.2);
+            --border-color: rgba(0, 255, 136, 0.25);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; user-select: none; }
         body { background-color: var(--bg-color); color: #fff; padding-bottom: 85px; min-height: 100vh; }
@@ -25,6 +24,7 @@
 
         #banOverlay { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
+        /* Header */
         .header { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); backdrop-filter: blur(12px); padding: 14px 18px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 0 25px rgba(0, 255, 136, 0.15); margin-bottom: 16px; }
         .brand-title { font-size: 15px; font-weight: 900; color: var(--neon-green); letter-spacing: 1px; }
         .balance-box { text-align: right; }
@@ -36,26 +36,35 @@
 
         .card { background: var(--panel-bg); backdrop-filter: blur(10px); padding: 18px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 16px; }
         .card h3 { font-size: 15px; margin-bottom: 10px; color: #fff; font-weight: 700; }
-        
+
         .btn { width: 100%; background: #ffffff; color: #000000; border: none; padding: 13px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: all 0.25s ease; margin-top: 10px; font-size: 14px; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
         .btn:active { transform: scale(0.98); background: #e0e0e0; }
+        .btn:disabled { background: #333 !important; color: #777 !important; cursor: not-allowed; box-shadow: none; }
 
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(15px); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 100; max-width: 480px; margin: 0 auto; }
         .nav-item { background: none; border: none; color: #777; font-size: 10px; cursor: pointer; text-align: center; transition: 0.2s; font-weight: 600; }
         .nav-item.active { color: var(--neon-green); text-shadow: 0 0 12px rgba(0,255,136,0.6); }
         .nav-item svg { width: 20px; height: 20px; display: block; margin: 0 auto 3px; fill: currentColor; }
 
-        /* Premium Çarx Stili */
-        .wheel-wrapper { position: relative; width: 260px; height: 260px; margin: 20px auto; }
-        .wheel-pointer { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 22px solid var(--neon-pink); z-index: 30; filter: drop-shadow(0 0 10px var(--neon-pink)); }
-        .wheel-canvas-box { width: 100%; height: 100%; border-radius: 50%; border: 5px solid var(--neon-green); box-shadow: 0 0 30px rgba(0, 255, 136, 0.4); overflow: hidden; position: relative; transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1); }
-        #rouletteCanvas { width: 100%; height: 100%; }
+        /* Profil Stili */
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .avatar-box { position: relative; width: 70px; height: 70px; border-radius: 50%; padding: 3px; background: linear-gradient(45deg, var(--neon-green), var(--neon-blue)); }
+        .avatar-box img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #111; }
+        .avatar-box.frame-flame { background: linear-gradient(45deg, #ff0055, #ff5500, #ffcc00); box-shadow: 0 0 15px #ff5500; }
 
-        /* Mağaza İtemləri */
-        .shop-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
-        .shop-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; }
-        .effect-preview-gold { background: linear-gradient(90deg, #ffd700, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
-        .effect-preview-chrome { background: linear-gradient(90deg, #e0e0e0, #888888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
+        /* Şirkət Stilli Professional Çarx */
+        .wheel-wrapper { position: relative; width: 270px; height: 270px; margin: 20px auto; }
+        .wheel-pointer { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 24px solid var(--neon-pink); z-index: 30; filter: drop-shadow(0 0 12px var(--neon-pink)); }
+        .wheel-canvas-box { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #1f1f2e; box-shadow: 0 0 35px rgba(0, 255, 136, 0.3), inset 0 0 15px #000; overflow: hidden; position: relative; transition: transform 4s cubic-bezier(0.15, 0.9, 0.15, 1); }
+        #rouletteCanvas { width: 100%; height: 100%; }
+        .wheel-center-cap { position: absolute; inset: calc(50% - 25px); width: 50px; height: 50px; background: radial-gradient(circle, #222, #050505); border: 2px solid var(--neon-green); border-radius: 50%; z-index: 25; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+
+        /* Mağaza Cart Məhsulları */
+        .shop-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px; margin-bottom: 12px; display: flex; gap: 12px; align-items: center; }
+        .shop-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border-color); background: #111; flex-shrink: 0; }
+        .shop-info { flex: 1; }
+        .shop-info h4 { font-size: 14px; color: #fff; margin-bottom: 4px; }
+        .shop-info p { font-size: 11px; color: #aaa; line-height: 1.3; }
 
         .method-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
         .method-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 4px; text-align: center; cursor: pointer; transition: 0.2s; }
@@ -64,7 +73,7 @@
         .method-card span { font-size: 9px; display: block; margin-top: 4px; color: #ccc; font-weight: bold; }
 
         input, select { width: 100%; padding: 13px; background: rgba(0,0,0,0.6); border: 1px solid var(--border-color); color: #fff; border-radius: 10px; margin-top: 6px; margin-bottom: 12px; font-size: 13px; outline: none; }
-        
+
         .leader-card { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
         .rank-badge { width: 26px; height: 26px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-right: 10px; }
         .rank-1 { background: var(--neon-gold); color: #000; box-shadow: 0 0 10px var(--neon-gold); }
@@ -74,7 +83,7 @@
 
 <div id="banOverlay">
     <h1 style="color: red; font-size: 24px; margin-bottom: 10px;">HESABINIZ BLOKLANIB</h1>
-    <p style="color: #aaa; font-size: 13px;">Qaydaları pozduğunuz üçün hesabınız sistemdən kənarlaşdırılıb.</p>
+    <p style="color: #aaa; font-size: 13px;">Qaydaları pozduğunuz üçün hesabınız dondurulub.</p>
 </div>
 
 <div class="container">
@@ -131,8 +140,9 @@
             
             <div class="wheel-wrapper">
                 <div class="wheel-pointer"></div>
+                <div class="wheel-center-cap">SPIN</div>
                 <div class="wheel-canvas-box" id="wheelBox">
-                    <canvas id="rouletteCanvas" width="260" height="260"></canvas>
+                    <canvas id="rouletteCanvas" width="270" height="270"></canvas>
                 </div>
             </div>
             
@@ -151,29 +161,25 @@
     <!-- MAĞAZA BÖLMƏSİ -->
     <div id="shopSection" class="section">
         <div class="card">
-            <h3>Profil Mağazası</h3>
-            <div class="shop-grid">
-                <div class="shop-box">
-                    <div>
-                        <div style="font-weight: bold; font-size: 13px; color: var(--neon-green);">Alov Çərçivəsi</div>
-                        <div style="font-size: 11px; color: #888;">Profil şəkli üçün xüsusi haşiyə</div>
-                    </div>
-                    <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="buyItem(1.50)">1.50 AZN</button>
+            <h3>Mağaza & Özəlləşdirmə</h3>
+            <p style="font-size: 11px; color: #888; margin-bottom: 12px;">Profilinizi bəzəyin və üstünlüklər əldə edin.</p>
+            
+            <div class="shop-card">
+                <img src="photo_2026-10-16_15-55-40.jpg" class="shop-img" alt="Flame">
+                <div class="shop-info">
+                    <h4>Alov Profil Çərçivəsi</h4>
+                    <p>Profil şəklinizin ətrafına xüsusi neon alov effekti verir və diqqət çəkici edir.</p>
                 </div>
-                <div class="shop-box">
-                    <div>
-                        <div class="effect-preview-gold" style="font-size: 13px;">Qızıl Ad Efekti</div>
-                        <div style="font-size: 11px; color: #888;">Liderlər cədvəlində adınız qızıl parıldayar</div>
-                    </div>
-                    <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="buyItem(3.00)">3.00 AZN</button>
+                <button class="btn" id="itemFlameBtn" style="width:auto; margin:0; padding:8px 12px; font-size:11px;" onclick="buyItem('frameFlame', 1.50)">1.50 AZN</button>
+            </div>
+
+            <div class="shop-card">
+                <img src="photo_2026-10-16_15-51-49.jpg" class="shop-img" alt="Gold">
+                <div class="shop-info">
+                    <h4>Qızıl Ad Efekti</h4>
+                    <p>Liderlər cədvəlində adınız parıldayan qızıl rəngdə nümayiş olunur.</p>
                 </div>
-                <div class="shop-box">
-                    <div>
-                        <div class="effect-preview-chrome" style="font-size: 13px;">Xrom Bənövşəyi Status</div>
-                        <div style="font-size: 11px; color: #888;">Xüsusi profil nişanı</div>
-                    </div>
-                    <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:12px;" onclick="buyItem(4.50)">4.50 AZN</button>
-                </div>
+                <button class="btn" id="itemGoldBtn" style="width:auto; margin:0; padding:8px 12px; font-size:11px;" onclick="buyItem('nameGold', 3.00)">3.00 AZN</button>
             </div>
         </div>
     </div>
@@ -181,11 +187,32 @@
     <!-- PROFİL BÖLMƏSİ -->
     <div id="profileSection" class="section">
         <div class="card">
-            <h3>İstifadəçi Profilı</h3>
-            <p style="margin-top: 10px; font-size: 14px;">Ad: <b id="profileName">-</b></p>
-            <div id="vipBadge" style="display:none; margin-top: 6px; font-size: 12px; color: var(--neon-gold); font-weight: bold;">VIP ÜZV</div>
-            <button class="btn" onclick="buyVip()" style="background: linear-gradient(90deg, #ffd700, #ff8c00); color:#000;">VIP Status Al (5 AZN)</button>
+            <div class="profile-header">
+                <div class="avatar-box" id="userAvatarBox">
+                    <img id="userAvatar" src="https://via.placeholder.com/70/111118/00ff88?text=USER" alt="Avatar">
+                </div>
+                <div>
+                    <h3 id="profileName" style="margin:0;">-</h3>
+                    <div id="vipBadge" style="display:none; font-size: 11px; color: var(--neon-gold); font-weight: bold; margin-top:2px;">VIP ÜZV</div>
+                </div>
+            </div>
+
+            <!-- Şəkil Dəyişmək -->
+            <label style="font-size: 11px; color:#aaa;">Profil Şəkli URL-i:</label>
+            <input type="text" id="avatarUrlInput" placeholder="https://sayt.com/sekil.jpg">
+            <button class="btn" style="margin-top:0; padding:8px; font-size:12px;" onclick="updateAvatar()">Şəkli Yenilə</button>
         </div>
+
+        <div class="card">
+            <h3>VIP Status nəyə yarayır?</h3>
+            <ul style="font-size: 11px; color: #ccc; margin-left: 15px; margin-top: 6px; line-height: 1.6;">
+                <li>Profilinizdə rəsmi VIP nişanı görünür.</li>
+                <li>Liderlər lövhəsində adınızın yanında tac nişanı olur.</li>
+                <li>Gələcək xüsusi aksiyalarda 2x qazanc şansı.</li>
+            </ul>
+            <button class="btn" id="buyVipBtn" onclick="buyVip()" style="background: linear-gradient(90deg, #ffd700, #ff8c00); color:#000;">VIP Status Al (5 AZN)</button>
+        </div>
+
         <div class="card">
             <h3>Referal Sistemi</h3>
             <p style="font-size: 12px; color: #aaa; margin-top: 4px;">Dostunu dəvət et: <b>+0.00020 AZN</b> qazan!</p>
@@ -284,20 +311,19 @@
     tg.expand();
     let user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : { id: 10001, first_name: "İstifadəçi" };
 
-    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false };
+    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', items: {} };
     let currentWithdrawMethod = 'card';
 
-    // Premium Çarx Sektorları (Ayrı-Ayrı Bombalar İlə)
     const sectors = [
-        { label: "Bomba 1", color: "#1a1a24", textColor: "#ff4444" },
+        { label: "Bomba 1", color: "#14141d", textColor: "#ff4444" },
         { label: "2 AZN", color: "#00e1ff", textColor: "#000" },
-        { label: "Bomba 2", color: "#111118", textColor: "#ff4444" },
+        { label: "Bomba 2", color: "#0d0d14", textColor: "#ff4444" },
         { label: "iPhone 17", color: "#ffd700", textColor: "#000" },
-        { label: "Bomba 3", color: "#1a1a24", textColor: "#ff4444" },
+        { label: "Bomba 3", color: "#14141d", textColor: "#ff4444" },
         { label: "30 AZN", color: "#ff007f", textColor: "#fff" },
-        { label: "Bomba 4", color: "#111118", textColor: "#ff4444" },
+        { label: "Bomba 4", color: "#0d0d14", textColor: "#ff4444" },
         { label: "5 AZN", color: "#00ff88", textColor: "#000" },
-        { label: "Bomba 5", color: "#1a1a24", textColor: "#ff4444" },
+        { label: "Bomba 5", color: "#14141d", textColor: "#ff4444" },
         { label: "2 AZN", color: "#00e1ff", textColor: "#000" }
     ];
 
@@ -307,27 +333,27 @@
         const numSectors = sectors.length;
         const arc = Math.PI * 2 / numSectors;
 
-        ctx.clearRect(0, 0, 260, 260);
+        ctx.clearRect(0, 0, 270, 270);
 
         sectors.forEach((sec, i) => {
             const angle = i * arc;
             ctx.beginPath();
             ctx.fillStyle = sec.color;
-            ctx.moveTo(130, 130);
-            ctx.arc(130, 130, 130, angle, angle + arc);
-            ctx.lineTo(130, 130);
+            ctx.moveTo(135, 135);
+            ctx.arc(135, 135, 135, angle, angle + arc);
+            ctx.lineTo(135, 135);
             ctx.fill();
-            ctx.strokeStyle = "rgba(0,255,136,0.3)";
+            ctx.strokeStyle = "rgba(0,255,136,0.2)";
             ctx.lineWidth = 1;
             ctx.stroke();
 
             ctx.save();
-            ctx.translate(130, 130);
+            ctx.translate(135, 135);
             ctx.rotate(angle + arc / 2);
             ctx.textAlign = "right";
             ctx.fillStyle = sec.textColor;
             ctx.font = "bold 11px sans-serif";
-            ctx.fillText(sec.label, 115, 4);
+            ctx.fillText(sec.label, 120, 4);
             ctx.restore();
         });
     }
@@ -341,7 +367,7 @@
                 return;
             }
         } else {
-            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false };
+            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', items: {} };
             userRef.set(userData);
         }
         updateUI();
@@ -354,10 +380,38 @@
         document.getElementById('watchedAds2').innerText = userData.watchedAds2 || 0;
         document.getElementById('profileName').innerText = user.first_name;
         
-        if (userData.isVip) document.getElementById('vipBadge').style.display = 'block';
+        if(userData.avatar) {
+            document.getElementById('userAvatar').src = userData.avatar;
+        }
+
+        if(userData.items && userData.items.frameFlame) {
+            document.getElementById('userAvatarBox').classList.add('frame-flame');
+            document.getElementById('itemFlameBtn').innerText = "Alınıb";
+            document.getElementById('itemFlameBtn').disabled = true;
+        }
+
+        if(userData.items && userData.items.nameGold) {
+            document.getElementById('itemGoldBtn').innerText = "Alınıb";
+            document.getElementById('itemGoldBtn').disabled = true;
+        }
+
+        if (userData.isVip) {
+            document.getElementById('vipBadge').style.display = 'block';
+            document.getElementById('buyVipBtn').innerText = "Artıq VIP-siniz";
+            document.getElementById('buyVipBtn').disabled = true;
+        }
+
         if (userData.ads2Unlocked) document.getElementById('lockedAdOverlay').style.display = 'none';
         document.getElementById('refLink').value = `https://t.me/YourBotName?start=${user.id}`;
         drawWheel();
+    }
+
+    function updateAvatar() {
+        let url = document.getElementById('avatarUrlInput').value;
+        if(!url) { alert("Şəkil URL-i daxil edin!"); return; }
+        userData.avatar = url;
+        userRef.update({ avatar: url });
+        alert("Profil şəkləniz yeniləndi!");
     }
 
     function switchTab(sectionId, btnElement) {
@@ -451,13 +505,24 @@
     }
 
     function buyVip() {
-        if(userData.balance >= 5) { userData.balance -= 5; userData.isVip = true; userRef.update(userData); alert("VIP status aktivləşdi!"); }
-        else alert("Balansınızda 5 AZN yoxdur.");
+        if(userData.isVip) { alert("Siz artıq VIP-siniz!"); return; }
+        if(userData.balance >= 5) { 
+            userData.balance -= 5; 
+            userData.isVip = true; 
+            userRef.update(userData); 
+            alert("VIP status aktivləşdi!"); 
+        } else alert("Balansınızda 5 AZN yoxdur.");
     }
 
-    function buyItem(price) {
-        if(userData.balance >= price) { userData.balance -= price; userRef.update(userData); alert("Məhsul uğurla alındı!"); }
-        else alert("Balansınız çatmır.");
+    function buyItem(itemKey, price) {
+        if(userData.items && userData.items[itemKey]) { alert("Siz artıq bu məhsulu almısınız!"); return; }
+        if(userData.balance >= price) { 
+            userData.balance -= price;
+            if(!userData.items) userData.items = {};
+            userData.items[itemKey] = true;
+            userRef.update(userData); 
+            alert("Məhsul uğurla alındı!"); 
+        } else alert("Balansınız çatmır.");
     }
 
     function copyRefLink() {
@@ -465,7 +530,6 @@
         alert("Referal link kopyalandı!");
     }
 
-    // Liderlər Cədvəli (Sadece Banlanmamış İstifadəçilər)
     db.ref('users').orderByChild('balance').limitToLast(15).on('value', snapshot => {
         let list = []; snapshot.forEach(c => {
             let u = c.val();
@@ -476,10 +540,11 @@
         let html = '';
         list.forEach((u, i) => {
             let badgeClass = i === 0 ? 'rank-1' : '';
+            let nameStyle = u.items && u.items.nameGold ? 'color:#ffd700; text-shadow:0 0 5px #ffd700;' : '';
             html += `<div class="leader-card">
                 <div style="display:flex; align-items:center;">
                     <div class="rank-badge ${badgeClass}">${i+1}</div>
-                    <span style="font-weight:bold; font-size:13px;">${u.name || 'İstifadəçi'}</span>
+                    <span style="font-weight:bold; font-size:13px; ${nameStyle}">${u.name || 'İstifadəçi'} ${u.isVip ? '👑' : ''}</span>
                 </div>
                 <span style="color:var(--neon-green); font-weight:bold; font-size:13px;">${Number(u.balance || 0).toFixed(5)} AZN</span>
             </div>`;
@@ -487,7 +552,6 @@
         document.getElementById('leaderboardList').innerHTML = html;
     });
 
-    // Çıxarış Tarixçəsi
     db.ref('withdraws').orderByChild('userId').equalTo(user.id).on('value', snapshot => {
         let html = '';
         snapshot.forEach(c => {
