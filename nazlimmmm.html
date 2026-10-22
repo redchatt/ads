@@ -80,6 +80,7 @@
     </div>
     <button class="menu-btn active" onclick="showTab('statsTab', this)">📊 Statistika</button>
     <button class="menu-btn" onclick="showTab('usersTab', this)">👥 İstifadəçilər</button>
+    <button class="menu-btn" onclick="showTab('tasksTab', this)">🎬 Promo Tapşırıqlar</button>
     <button class="menu-btn" onclick="showTab('withdrawsTab', this)">💸 Çıxarış Tələbləri</button>
     <button class="menu-btn" onclick="showTab('adsTab', this)">⚙️ Reklam İdarəetməsi</button>
 </div>
@@ -111,6 +112,25 @@
                     </tr>
                 </thead>
                 <tbody id="usersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PROMO TAPŞIRIQLAR BÖLMƏSİ -->
+    <div id="tasksTab" class="tab-content">
+        <h2>Promo Video Tapşırıqları (5 AZN)</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>İstifadəçi</th>
+                        <th>Video Linki</th>
+                        <th>Sübut Şəkli</th>
+                        <th>Status</th>
+                        <th>Əməliyyatlar</th>
+                    </tr>
+                </thead>
+                <tbody id="promoTasksList"></tbody>
             </table>
         </div>
     </div>
@@ -173,10 +193,11 @@
         document.querySelectorAll('.menu-btn').forEach(m => m.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         btn.classList.add('active');
-        closeMenu(); // Seçim ediləndən sonra menyunu avtomatik bağlayır
+        closeMenu();
     }
 
     function loadData() {
+        // İstifadəçilər
         db.ref('users').on('value', snapshot => {
             let totalUsers = 0, totalBal = 0, totalAdsWatched = 0;
             let html = '';
@@ -206,6 +227,32 @@
             document.getElementById('statBalance').innerText = totalBal.toFixed(2) + " AZN";
         });
 
+        // Promo Video Tapşırıqları Yüklənir
+        db.ref('admin_tasks').on('value', snapshot => {
+            let html = '';
+            snapshot.forEach(child => {
+                let taskId = child.key;
+                let t = child.val();
+                let imgTag = t.proofImage ? `<a href="${t.proofImage}" target="_blank"><img src="${t.proofImage}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></a>` : 'Şəkil yoxdur';
+                let statusColor = t.status === 'Təsdiqləndi' ? 'var(--primary)' : (t.status === 'Ləğv edildi' ? 'red' : '#00e1ff');
+
+                html += `<tr>
+                    <td><b>${t.userName || 'İstifadəçi'}</b><br><small style="color:#666">${t.userId}</small></td>
+                    <td><a href="${t.videoLink}" target="_blank" style="color:var(--primary); text-decoration:underline;">Videoya Bax</a></td>
+                    <td>${imgTag}</td>
+                    <td><b style="color:${statusColor}">${t.status}</b></td>
+                    <td>
+                        ${t.status === 'Gözləmədədir' ? `
+                            <button class="btn-action btn-success" onclick="approvePromoTask('${taskId}', '${t.userId}', 5)">Təsdiq Et (+5 AZN)</button>
+                            <button class="btn-action btn-danger" onclick="rejectPromoTask('${taskId}')">Ləğv Et</button>
+                        ` : '-'}
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('promoTasksList').innerHTML = html || '<tr><td colspan="5">Göndərilmiş tapşırıq yoxdur.</td></tr>';
+        });
+
+        // Çıxarışlar
         db.ref('withdraws').on('value', snapshot => {
             let pendingCount = 0;
             let html = '';
@@ -228,6 +275,29 @@
             document.getElementById('withdrawsList').innerHTML = html;
             document.getElementById('statPending').innerText = pendingCount;
         });
+    }
+
+    // Tapşırığı təsdiqləyib 5 AZN balansa vurmaq
+    function approvePromoTask(taskId, userId, rewardAmount) {
+        if(confirm("Tapşırıq təsdiqlənsin və istifadəçiyə 5 AZN əlavə edilsin?")) {
+            db.ref('users/' + userId).once('value', snapshot => {
+                let u = snapshot.val();
+                if(u) {
+                    let newBal = (u.balance || 0) + rewardAmount;
+                    db.ref('users/' + userId).update({ balance: newBal });
+                }
+                db.ref('admin_tasks/' + taskId).update({ status: 'Təsdiqləndi' });
+                alert("Tapşırıq təsdiqləndi, 5 AZN istifadəçi balansına əlavə olundu!");
+            });
+        }
+    }
+
+    // Tapşırığı ləğv etmək
+    function rejectPromoTask(taskId) {
+        if(confirm("Tapşırıq ləğv edilsin?")) {
+            db.ref('admin_tasks/' + taskId).update({ status: 'Ləğv edildi' });
+            alert("Tapşırıq ləğv edildi.");
+        }
     }
 
     function modifyBalance(userId, amount) {
