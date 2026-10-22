@@ -9,26 +9,42 @@
     <style>
         :root { --bg: #09090d; --card: #13131a; --primary: #00ff88; --danger: #ff4444; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: var(--bg); color: #fff; display: flex; min-height: 100vh; }
+        body { background: var(--bg); color: #fff; min-height: 100vh; flex-direction: column; display: flex; }
 
         #loginBox { position: fixed; inset:0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .login-card { background: var(--card); padding: 30px; border-radius: 12px; width: 320px; border: 1px solid #222; text-align: center; }
 
-        .sidebar { width: 240px; background: var(--card); border-right: 1px solid #222; padding: 20px; }
-        .sidebar h2 { font-size: 18px; color: var(--primary); margin-bottom: 25px; }
-        .menu-btn { width: 100%; text-align: left; padding: 12px; background: none; border: none; color: #aaa; cursor: pointer; border-radius: 8px; font-weight: bold; margin-bottom: 5px; }
+        /* Top Bar & Drawer Toggle */
+        .top-bar { background: var(--card); border-bottom: 1px solid #222; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; }
+        .top-bar h2 { font-size: 18px; color: var(--primary); }
+        .menu-toggle-btn { background: none; border: 1px solid #333; color: var(--primary); font-size: 20px; padding: 5px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .menu-toggle-btn:active { background: rgba(0, 255, 136, 0.2); }
+
+        /* Drawer Overlay & Sidebar */
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 998; opacity: 0; pointer-events: none; transition: 0.3s ease; }
+        .drawer-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .sidebar { position: fixed; top: 0; left: -260px; width: 250px; height: 100%; background: var(--card); border-right: 1px solid #222; padding: 20px; z-index: 999; transition: left 0.3s ease; box-shadow: 5px 0 25px rgba(0,0,0,0.5); }
+        .sidebar.open { left: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .sidebar-header h2 { font-size: 18px; color: var(--primary); }
+        .close-btn { background: none; border: none; color: #888; font-size: 22px; cursor: pointer; }
+
+        .menu-btn { width: 100%; text-align: left; padding: 12px; background: none; border: none; color: #aaa; cursor: pointer; border-radius: 8px; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
         .menu-btn.active, .menu-btn:hover { background: rgba(0, 255, 136, 0.1); color: var(--primary); }
 
-        .main-content { flex: 1; padding: 25px; overflow-y: auto; }
+        /* Content Area */
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #222; }
         .stat-card h4 { font-size: 11px; color: #888; text-transform: uppercase; }
         .stat-card div { font-size: 20px; font-weight: bold; color: var(--primary); margin-top: 5px; }
 
-        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; margin-top: 15px; }
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; min-width: 600px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #222; font-size: 13px; }
         th { background: #1a1a24; color: #888; }
 
@@ -49,14 +65,26 @@
     </div>
 </div>
 
-<div class="sidebar">
+<!-- Header / Top Bar -->
+<div class="top-bar">
     <h2>EARN ADMIN</h2>
-    <button class="menu-btn active" onclick="showTab('statsTab', this)">Statistika</button>
-    <button class="menu-btn" onclick="showTab('usersTab', this)">İstifadəçilər</button>
-    <button class="menu-btn" onclick="showTab('withdrawsTab', this)">Çıxarış Tələbləri</button>
-    <button class="menu-btn" onclick="showTab('adsTab', this)">Reklam İdarəetməsi</button>
+    <button class="menu-toggle-btn" onclick="toggleMenu()">⋮ Menyular</button>
 </div>
 
+<!-- Sliding Drawer Sidebar -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeMenu()"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>Menyu</h2>
+        <button class="close-btn" onclick="closeMenu()">✕</button>
+    </div>
+    <button class="menu-btn active" onclick="showTab('statsTab', this)">📊 Statistika</button>
+    <button class="menu-btn" onclick="showTab('usersTab', this)">👥 İstifadəçilər</button>
+    <button class="menu-btn" onclick="showTab('withdrawsTab', this)">💸 Çıxarış Tələbləri</button>
+    <button class="menu-btn" onclick="showTab('adsTab', this)">⚙️ Reklam İdarəetməsi</button>
+</div>
+
+<!-- Main Content Area -->
 <div class="main-content">
     <div id="statsTab" class="tab-content active">
         <h2>Sistem Statistikası</h2>
@@ -70,35 +98,39 @@
 
     <div id="usersTab" class="tab-content">
         <h2>İstifadəçi İdarəetməsi</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID / Ad</th>
-                    <th>Balans</th>
-                    <th>Baxılan Reklam</th>
-                    <th>Dəvət Edilən (Ref)</th>
-                    <th>Status</th>
-                    <th>Əməliyyatlar</th>
-                </tr>
-            </thead>
-            <tbody id="usersList"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID / Ad</th>
+                        <th>Balans</th>
+                        <th>Baxılan Reklam</th>
+                        <th>Dəvət Edilən (Ref)</th>
+                        <th>Status</th>
+                        <th>Əməliyyatlar</th>
+                    </tr>
+                </thead>
+                <tbody id="usersList"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="withdrawsTab" class="tab-content">
         <h2>Çıxarış Tələbləri</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>İstifadəçi</th>
-                    <th>Metod</th>
-                    <th>Məbləğ</th>
-                    <th>Status</th>
-                    <th>Əməliyyat</th>
-                </tr>
-            </thead>
-            <tbody id="withdrawsList"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>İstifadəçi</th>
+                        <th>Metod</th>
+                        <th>Məbləğ</th>
+                        <th>Status</th>
+                        <th>Əməliyyat</th>
+                    </tr>
+                </thead>
+                <tbody id="withdrawsList"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="adsTab" class="tab-content">
@@ -114,6 +146,16 @@
     const firebaseConfig = { databaseURL: "https://adss-8257b-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    function toggleMenu() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('drawerOverlay').classList.toggle('active');
+    }
+
+    function closeMenu() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('drawerOverlay').classList.remove('active');
+    }
 
     function checkLogin() {
         let u = document.getElementById('adminUser').value;
@@ -131,6 +173,7 @@
         document.querySelectorAll('.menu-btn').forEach(m => m.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         btn.classList.add('active');
+        closeMenu(); // Seçim ediləndən sonra menyunu avtomatik bağlayır
     }
 
     function loadData() {
