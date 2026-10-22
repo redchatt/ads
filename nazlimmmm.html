@@ -76,6 +76,7 @@
                     <th>ID / Ad</th>
                     <th>Balans</th>
                     <th>Baxılan Reklam</th>
+                    <th>Dəvət Edilən (Ref)</th>
                     <th>Status</th>
                     <th>Əməliyyatlar</th>
                 </tr>
@@ -117,7 +118,7 @@
     function checkLogin() {
         let u = document.getElementById('adminUser').value;
         let p = document.getElementById('adminPass').value;
-        if(u === 'Escobar211_4568' && p === 'AA211_SEMRA') {
+        if(u === 'Escobaradss667' && p === 'Qqaqas678_45Fgs') {
             document.getElementById('loginBox').style.display = 'none';
             loadData();
         } else {
@@ -147,6 +148,7 @@
                     <td><b>${u.name || 'İstifadəçi'}</b><br><small style="color:#666">${id}</small></td>
                     <td>${Number(u.balance || 0).toFixed(5)} AZN</td>
                     <td>${(u.watchedAds || 0) + (u.watchedAds2 || 0)} / 100</td>
+                    <td><b>${u.refCount || 0}</b> nəfər</td>
                     <td>${u.isBanned ? '<b style="color:red">BLOKLANIB</b>' : '<b style="color:green">Aktiv</b>'}</td>
                     <td>
                         <button class="btn-action btn-success" onclick="modifyBalance('${id}', 1)">+1 AZN</button>
@@ -193,7 +195,6 @@
         });
     }
 
-    // İstifadəçini Banlayıb Bütün Sistemdən Və Liderlərdən Tam Silmək
     function deleteAndBanUser(userId) {
         if(confirm("İstifadəçi bloklanaraq baza və liderlər siyahısından tam silinsin?")) {
             db.ref('users/' + userId).update({ isBanned: true, balance: 0 }).then(() => {
