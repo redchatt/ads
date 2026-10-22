@@ -136,10 +136,25 @@
         </div>
     </div>
 
-    <!-- TAPŞIRIQLAR BÖLMƏSİ (REAL LİNKLər İLƏ) -->
+    <!-- TAPŞIRIQLAR BÖLMƏSİ -->
     <div id="tasksSection" class="section">
+        <div class="card" style="border: 1px solid var(--neon-gold);">
+            <h3 style="color: var(--neon-gold);">🎬 Video Promo Tapşırığı (5 AZN)</h3>
+            <div style="text-align: center; margin: 10px 0;">
+                <img src="photo_2026-10-22_17-58-02.jpg" alt="Promo Foto" style="width: 100%; max-height: 180px; object-fit: contain; border-radius: 12px; border: 1px solid var(--border-color);">
+                <a href="photo_2026-10-22_17-58-02.jpg" download="promo_photo.jpg" class="btn" style="display: block; text-decoration: none; text-align: center; background: var(--neon-green); color: #000; margin-top: 8px; font-size: 12px; padding: 8px;">📥 Bu Şəkli Yüklə</a>
+            </div>
+            <p style="font-size: 11px; color: #ccc; line-height: 1.5; margin-bottom: 10px;">
+                <b>Təlimat:</b> Yuxarıdakı şəkli yükləyin və YouTube və ya TikTok sosial şəbəkəsində profilinizə qoyun. Sonra uzun bir video paylaşıb botu tanıdın və <b>5 AZN mükafat qazanın</b>!
+                <br><br>
+                ⚠️ <b>Şərtlər:</b> Minimum baxış <b>2000+</b> olmalıdır. Saxta baxış və digər saxta məlumatlar aşkarlanarsa dərhal banlanacaqsınız!
+            </p>
+            <input type="text" id="promoVideoLink" placeholder="Videonuzun Linkini daxil edin (TikTok/YouTube)">
+            <button class="btn" id="sendPromoTaskBtn" onclick="submitPromoTask()" style="background: linear-gradient(90deg, #00ff88, #00e1ff); color: #000;">Göndər (Admin Təsdiqinə)</button>
+        </div>
+
         <div class="card">
-            <h3>Tapşırıqlar (+5 Coin)</h3>
+            <h3>Sosial Media Tapşırıqları (+5 Coin)</h3>
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
                 <span>TikTok Kanalını İzlə</span>
@@ -222,7 +237,10 @@
         <div class="card">
             <h3>Referal Sistemi</h3>
             <p style="font-size: 12px; color: #aaa; margin-top: 4px;">Dostunu dəvət et: <b>+0.00020 AZN</b> qazan!</p>
-            <input type="text" id="refLink" readonly style="font-size: 11px;">
+            <div style="font-size: 11px; color: var(--neon-green); margin-top: 6px;">
+                Dəvət olunanlar: <b id="refCount">0</b> nəfər | Qazanc: <b id="refEarnings">0.00000</b> AZN
+            </div>
+            <input type="text" id="refLink" readonly style="font-size: 11px; margin-top: 8px;">
             <button class="btn" onclick="copyRefLink()">Linki Kopyala</button>
         </div>
     </div>
@@ -314,7 +332,7 @@
     tg.expand();
     let user = tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : { id: 10001, first_name: "İstifadəçi" };
 
-    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {} };
+    let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {}, refCount: 0, refEarnings: 0 };
     let currentWithdrawMethod = 'card';
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -359,11 +377,15 @@
                 db.ref('users/' + refId).once('value', (refSnap) => {
                     if(refSnap.exists()) {
                         let refData = refSnap.val();
-                        db.ref('users/' + refId).update({ balance: (refData.balance || 0) + 0.00020 });
+                        db.ref('users/' + refId).update({ 
+                            balance: (refData.balance || 0) + 0.00020,
+                            refCount: (refData.refCount || 0) + 1,
+                            refEarnings: (refData.refEarnings || 0) + 0.00020
+                        });
                     }
                 });
             }
-            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {} };
+            userData = { name: user.first_name, balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {}, refCount: 0, refEarnings: 0 };
             userRef.set(userData);
         }
         updateUI();
@@ -376,6 +398,9 @@
         document.getElementById('watchedAds2').innerText = userData.watchedAds2 || 0;
         document.getElementById('profileNameText').innerText = user.first_name;
         
+        if(document.getElementById('refCount')) document.getElementById('refCount').innerText = userData.refCount || 0;
+        if(document.getElementById('refEarnings')) document.getElementById('refEarnings').innerText = Number(userData.refEarnings || 0).toFixed(5);
+
         if(userData.avatar) {
             document.getElementById('userAvatar').src = userData.avatar;
         }
@@ -396,9 +421,34 @@
         if(userData.tasks && userData.tasks.telegram) {
             let b = document.getElementById('taskTelegram'); b.innerText = "Tamamlandı"; b.disabled = true;
         }
+        if(userData.tasks && userData.tasks.promoSubmitted) {
+            let b = document.getElementById('sendPromoTaskBtn');
+            if(b) { b.innerText = "Gözləmədədir..."; b.disabled = true; }
+        }
 
         if (userData.ads2Unlocked) document.getElementById('lockedAdOverlay').style.display = 'none';
         document.getElementById('refLink').value = `https://t.me/vortexadss?start=${user.id}`;
+    }
+
+    function submitPromoTask() {
+        let link = document.getElementById('promoVideoLink').value.trim();
+        if(!link) { alert("Xahiş olunur videonun linkini daxil edin!"); return; }
+        if(userData.tasks && userData.tasks.promoSubmitted) { alert("Siz artıq link göndərmisiniz!"); return; }
+
+        db.ref('admin_tasks').push({
+            userId: user.id,
+            userName: user.first_name,
+            videoLink: link,
+            reward: 5,
+            status: "Gözləmədədir",
+            date: new Date().toLocaleString()
+        }).then(() => {
+            if(!userData.tasks) userData.tasks = {};
+            userData.tasks.promoSubmitted = true;
+            userRef.update(userData);
+            alert("Promo video linkiniz uğurla admin panelə göndərildi! Yoxlanıldıqdan sonra 5 AZN balansınıza əlavə olunacaq.");
+            updateUI();
+        });
     }
 
     function doTask(taskId, url, btnElement) {
