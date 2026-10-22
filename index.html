@@ -149,7 +149,12 @@
                 <br><br>
                 ⚠️ <b>Şərtlər:</b> Minimum baxış <b>2000+</b> olmalıdır. Saxta baxış və digər saxta məlumatlar aşkarlanarsa dərhal banlanacaqsınız!
             </p>
-            <input type="text" id="promoVideoLink" placeholder="Videonuzun Linkini daxil edin (TikTok/YouTube)">
+            
+            <input type="file" id="promoProofInput" accept="image/*" style="display: none;" onchange="handlePromoProof(this)">
+            <button class="btn" style="margin-top:0; padding:10px; font-size:12px; background: rgba(0,255,136,0.1); color: var(--neon-green); border: 1px solid var(--neon-green);" onclick="document.getElementById('promoProofInput').click();">📷 Profildə Şəkli Qoyduğunuzun Ekran Görüntüsünü Yüklə</button>
+            <div id="promoProofStatus" style="font-size: 11px; color: var(--neon-green); margin-top: 4px; text-align: center; margin-bottom: 8px;"></div>
+
+            <input type="text" id="promoVideoLink" placeholder="Paylaşdığınız Videonun Linkini daxil edin">
             <button class="btn" id="sendPromoTaskBtn" onclick="submitPromoTask()" style="background: linear-gradient(90deg, #00ff88, #00e1ff); color: #000;">Göndər (Admin Təsdiqinə)</button>
         </div>
 
@@ -334,6 +339,7 @@
 
     let userData = { balance: 0, coins: 0, watchedAds: 0, watchedAds2: 0, isVip: false, isBanned: false, ads2Unlocked: false, avatar: '', tasks: {}, refCount: 0, refEarnings: 0 };
     let currentWithdrawMethod = 'card';
+    let promoProofImageData = ''; // Yüklənən promo şəkli
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playWinSound() {
@@ -427,18 +433,34 @@
         }
 
         if (userData.ads2Unlocked) document.getElementById('lockedAdOverlay').style.display = 'none';
-        document.getElementById('refLink').value = `https://t.me/vortexadss?start=${user.id}`;
+        
+        // Referal link botun tagına (@vortexadssbot) yönləndirilir
+        document.getElementById('refLink').value = `https://t.me/vortexadssbot?start=${user.id}`;
+    }
+
+    // Şəkil yükləmə funksiyası (Promo sübut şəkli)
+    function handlePromoProof(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                promoProofImageData = e.target.result;
+                document.getElementById('promoProofStatus').innerText = "✅ Şəkil uğurla seçildi!";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function submitPromoTask() {
         let link = document.getElementById('promoVideoLink').value.trim();
         if(!link) { alert("Xahiş olunur videonun linkini daxil edin!"); return; }
-        if(userData.tasks && userData.tasks.promoSubmitted) { alert("Siz artıq link göndərmisiniz!"); return; }
+        if(!promoProofImageData) { alert("Xahiş olunur şəkli qoyduğunuzun ekran görüntüsünü (şəkli) yükləyin!"); return; }
+        if(userData.tasks && userData.tasks.promoSubmitted) { alert("Siz artıq tapşırığı göndərmisiniz!"); return; }
 
         db.ref('admin_tasks').push({
             userId: user.id,
             userName: user.first_name,
             videoLink: link,
+            proofImage: promoProofImageData,
             reward: 5,
             status: "Gözləmədədir",
             date: new Date().toLocaleString()
@@ -446,7 +468,7 @@
             if(!userData.tasks) userData.tasks = {};
             userData.tasks.promoSubmitted = true;
             userRef.update(userData);
-            alert("Promo video linkiniz uğurla admin panelə göndərildi! Yoxlanıldıqdan sonra 5 AZN balansınıza əlavə olunacaq.");
+            alert("Promo video linkiniz və şəkil sübutu uğurla admin panelə göndərildi! Yoxlanıldıqdan sonra 5 AZN balansınıza əlavə olunacaq.");
             updateUI();
         });
     }
